@@ -20,19 +20,19 @@ class VCDValue:
       value_no_xz    = value.replace('x','0').replace('X','0').replace('z','0').replace('Z','0')
       self.has_xz    = value == value_no_xz
       if len(value) == 1:
-        self.value     = int(value)
-        self.raw_value = ValueFormat.BINARY
+        self.value      = int(value)
+        self.raw_format = ValueFormat.BINARY
       else:
         identifier_code = value[0]
         value           = value[1:]
         value_no_xz     = value_no_xz[1:]
         match identifier_code:
           case "b" | "B":
-            self.value     = int(value,2)
-            self.raw_value = ValueFormat.BINARY
+            self.value      = int(value,2)
+            self.raw_format = ValueFormat.BINARY
           case "r" | "R":
-            self.value     = int(value,10)
-            self.raw_value = ValueFormat.DECIMAL
+            self.value      = int(value,10)
+            self.raw_format = ValueFormat.DECIMAL
   def bin_display(self) -> str:
     if self.raw_format == ValueFormat.BINARY:
       return self.raw_value
