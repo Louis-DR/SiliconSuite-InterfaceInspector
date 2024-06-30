@@ -2,18 +2,40 @@ from enum import Enum
 from bisect import bisect_right
 from pyDigitalWaveTools.vcd.parser import VcdParser, VcdVarScope
 
-class SearchMethod(Enum):
-  WALKING = 0
-  BINARY  = 1
-  SMART   = 2
+class ValueFormat(Enum):
+  BINARY      = 0
+  OCTAL       = 1
+  DECIMAL     = 2
+  HEXADECIMAL = 3
 
-class EdgePolarity(Enum):
-  RISING  = 0
-  FALLING = 1
-
-class TimeDirection(Enum):
-  NEXT     = 0
-  PREVIOUS = 1
+class VCDValue:
+  def __init__(self, value, format:ValueFormat):
+    if isinstance(value,int):
+      self.value = value
+    elif isinstance(value,str):
+      match format:
+        case ValueFormat.BINARY:
+          self.value = int(value,2)
+        case ValueFormat.OCTAL:
+          self.value = int(value,8)
+        case ValueFormat.DECIMAL:
+          self.value = int(value,10)
+        case ValueFormat.HEXADECIMAL:
+          self.value = int(value,16)
+  def __index__(self):
+    return self.value
+  def __eq__(self, value: object) -> bool:
+    return self.value == value
+  def __ne__(self, value: object) -> bool:
+    return self.value != value
+  def __ge__(self, value: object) -> bool:
+    return self.value >= value
+  def __le__(self, value: object) -> bool:
+    return self.value <= value
+  def __gt__(self, value: object) -> bool:
+    return self.value >  value
+  def __lt__(self, value: object) -> bool:
+    return self.value <  value
 
 class VCDSample:
   def __init__(self,timestamp:int,value:str):
@@ -29,6 +51,19 @@ class VCDSample:
 
   def __repr__(self):
     return f"'{self.timestamp}ns:{self.value}'"
+
+class SearchMethod(Enum):
+  WALKING = 0
+  BINARY  = 1
+  SMART   = 2
+
+class EdgePolarity(Enum):
+  RISING  = 0
+  FALLING = 1
+
+class TimeDirection(Enum):
+  NEXT     = 0
+  PREVIOUS = 1
 
 class VCDSignal:
   def __init__(self, vcd:list[VCDSample]):
