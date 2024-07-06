@@ -18,7 +18,7 @@ class VCDValue:
     elif isinstance(value,str):
       self.raw_value = value
       value_no_xz    = value.replace('x','0').replace('X','0').replace('z','0').replace('Z','0')
-      self.has_xz    = value == value_no_xz
+      self.has_xz    = value != value_no_xz
       if len(value) == 1:
         self.value      = int(value)
         self.raw_format = ValueFormat.BINARY
