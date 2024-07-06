@@ -40,6 +40,8 @@ class VCDValue:
       return bin(self.value)[2:]
   def bin_index(self) -> str:
     return self.bin_display()[::-1]
+  def __repr__(self):
+    return self.bin_display()
   def __index__(self):
     return self.value
   def __eq__(self, value: object) -> bool:
@@ -91,7 +93,7 @@ class VCDSignal:
     self.finished       = False
 
   def get_at_timestamp(self, timestamp:int, move:bool=False) -> VCDSample:
-    search_index  = bisect_right(self.vcd, timestamp, lo=self.current_sample.timestamp, key=lambda x:x.timestamp)-1
+    search_index  = bisect_right(self.vcd, timestamp, lo=self.current_index, key=lambda x:x.timestamp)-1
     search_sample = self.vcd[search_index]
     if move:
       self.current_index  = search_index
