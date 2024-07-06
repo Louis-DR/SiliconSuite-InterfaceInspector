@@ -6,6 +6,8 @@ class APBOperation(Enum):
   READ  = 0
   WRITE = 1
   XZ    = 2
+  def __str__(self):
+    return self.name
 
 class APBTransaction:
   def __init__(self,
@@ -27,6 +29,14 @@ class APBTransaction:
     self.pwdata  = pwdata
     self.prdata  = prdata
     self.pslverr = pslverr
+
+    if self.pwrite.has_xz:
+      self.operation = APBOperation.XZ
+    else:
+      self.operation = APBOperation(self.pwrite.value)
+
+  def __str__(self) -> str:
+    return f"[ {self.timestamp_request} - {self.timestamp_response} ] [APB] {self.operation} @{self.paddr}"
 
 class APBInterface:
   def __init__(self, vcd_file:VCDFile, path:list[str]=[], prefix:str="", uppercase:bool=False):
@@ -51,18 +61,18 @@ class APBInterface:
     pstrb   = self.pstrb  .get_at_timestamp(timestamp_request).value
     pwdata  = self.pwdata .get_at_timestamp(timestamp_request).value
     pready  = self.pready .get_at_timestamp(timestamp_request, move=True).value
-    timestamp_response = self.pready.get_edge_at_timestamp(timestamp_penable).timestamp
+    timestamp_response = self.pready.get_edge_at_timestamp(timestamp_request).timestamp
     prdata  = self.pprot  .get_at_timestamp(timestamp_response).value
     pslverr = self.pprot  .get_at_timestamp(timestamp_response).value
     transaction = APBTransaction(
-      timestamp_request,
-      timestamp_response,
-      paddr,
-      pprot,
-      pwrite,
-      pstrb,
-      pwdata,
-      prdata,
-      pslverr,
+      timestamp_request  = timestamp_request,
+      timestamp_response = timestamp_response,
+      paddr              = paddr,
+      pprot              = pprot,
+      pwrite             = pwrite,
+      pstrb              = pstrb,
+      pwdata             = pwdata,
+      prdata             = prdata,
+      pslverr            = pslverr,
     )
     return transaction
