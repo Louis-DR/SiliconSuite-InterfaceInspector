@@ -15,7 +15,7 @@ class VCDFormat(Enum):
 
 
 class VCDValue:
-  """ A value from a VCD with useful methods. """
+  """ A value from a VCD. """
 
   def __init__(self, value:str, width:int):
     """ VCD value from the raw values from the VCD and the width of the signal. """
@@ -169,7 +169,7 @@ class VCDValue:
 
 
 class VCDSample:
-  """ A sample from a VCD with useful methods. """
+  """ A sample from a VCD. """
 
   def __init__(self,timestamp:int,value:VCDValue):
     """ VCDSample from a timestamp and a VCDValue. """
@@ -208,7 +208,7 @@ class TimeDirection(Enum):
 
 
 class VCDSignal:
-  """ A signal of a VCD with its own dump. """
+  """ A signal of a VCD with its dump. """
 
   def __init__(self, vcd:list[VCDSample], width:int):
     """ VCDSignal from a list of VCDSamples and a width. """
@@ -300,7 +300,7 @@ class VCDSignal:
 
 
 class VCDFile:
-  """ A VCD file wrapping around pyDigitalWaveTools.VcdParser with useful methods. """
+  """ A wrapper around pyDigitalWaveTools.VcdParser for a VCD file. """
 
   def __init__(self, vcd_path:str):
     """ Parse the VCD from the file. """
