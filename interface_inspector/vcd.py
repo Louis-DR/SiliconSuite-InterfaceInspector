@@ -47,11 +47,11 @@ class VCDValue:
     if self.format == VCDFormat.REAL:
       return hex(self.value)[2:]
     value_hex = ""
-    value_bin = self.value[::-1]
-    while value:
+    value_bin = self.value
+    while value_bin:
       nibble_hex = "?"
-      nibble_bin = value[-4:]
-      value = value[:-4]
+      nibble_bin = value_bin[-4:]
+      value_bin  = value_bin[:-4]
       count_0 = nibble_bin.count('0')
       count_1 = nibble_bin.count('1')
       count_x = nibble_bin.count('x') + nibble_bin.count('X')
@@ -84,9 +84,7 @@ class VCDValue:
     return value_hex
 
   def __repr__(self):
-    return self.value
-  def __index__(self):
-    return self.value
+    return self.hexadecimal()
 
   def __eq__(self, value: object) -> bool:
     return self.value == str(value)
