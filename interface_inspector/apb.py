@@ -22,6 +22,7 @@ class APBTransaction:
                timestamp_response : int,
                paddr              : VCDValue,
                pprot              : VCDValue,
+               pnse               : VCDValue,
                pwrite             : VCDValue,
                pstrb              : VCDValue,
                pwdata             : VCDValue,
@@ -32,6 +33,7 @@ class APBTransaction:
     self.timestamp_response = timestamp_response
     self.paddr   = paddr
     self.pprot   = pprot
+    self.pnse    = pnse
     self.pwrite  = pwrite
     self.pstrb   = pstrb
     self.pwdata  = pwdata
