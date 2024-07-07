@@ -46,6 +46,7 @@ class APBInterface:
     self.pready  = vcd_file.get_signal(path+[prefix+cond_upper("pready", uppercase)])
     self.paddr   = vcd_file.get_signal(path+[prefix+cond_upper("paddr",  uppercase)])
     self.pprot   = vcd_file.get_signal(path+[prefix+cond_upper("pprot",  uppercase)])
+    self.pnse    = vcd_file.get_signal(path+[prefix+cond_upper("pnse",   uppercase)])
     self.pwrite  = vcd_file.get_signal(path+[prefix+cond_upper("pwrite", uppercase)])
     self.pstrb   = vcd_file.get_signal(path+[prefix+cond_upper("pstrb",  uppercase)])
     self.pwdata  = vcd_file.get_signal(path+[prefix+cond_upper("pwdata", uppercase)])
@@ -64,6 +65,10 @@ class APBInterface:
     timestamp_response = self.pready.get_edge_at_timestamp(timestamp_request).timestamp
     prdata  = self.pprot  .get_at_timestamp(timestamp_response).value
     pslverr = self.pprot  .get_at_timestamp(timestamp_response).value
+
+    if self.pnse:
+      pnse  = self.pnse   .get_at_timestamp(timestamp_request).value
+
     transaction = APBTransaction(
       timestamp_request  = timestamp_request,
       timestamp_response = timestamp_response,
