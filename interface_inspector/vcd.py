@@ -90,14 +90,6 @@ class VCDValue:
     return self.value == str(value)
   def __ne__(self, value: object) -> bool:
     return self.value != str(value)
-  def __ge__(self, value: object) -> bool:
-    return self.value >= str(value)
-  def __le__(self, value: object) -> bool:
-    return self.value <= str(value)
-  def __gt__(self, value: object) -> bool:
-    return self.value >  str(value)
-  def __lt__(self, value: object) -> bool:
-    return self.value <  str(value)
 
 
 
