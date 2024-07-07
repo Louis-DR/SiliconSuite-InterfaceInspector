@@ -30,7 +30,6 @@ class VCDValue:
           self.value = value
     value_no_xz = self.value.replace('x','0').replace('X','0').replace('z','0').replace('Z','0')
     self.has_xz = self.value != value_no_xz
-    print(f"VCDVALUE {width}'{value} => {self.value}")
 
   def __getitem__(self, key):
     value_sliced = self.value[::-1][key]
