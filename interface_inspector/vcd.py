@@ -265,7 +265,8 @@ class VCDSignal:
 
       # Check the polarity of the edge
       search_sample = self.vcd[search_index]
-      if search_sample.value == 1:
+      if (   (polarity == EdgePolarity.RISING  and search_sample.value == 1)
+          or (polarity == EdgePolarity.FALLING and search_sample.value == 0) ):
 
         # Update the state of the signal
         if move:
