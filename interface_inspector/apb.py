@@ -62,7 +62,8 @@ class APBInterface:
     pstrb   = self.pstrb  .get_at_timestamp(timestamp_request).value
     pwdata  = self.pwdata .get_at_timestamp(timestamp_request).value
     pready  = self.pready .get_at_timestamp(timestamp_request, move=True).value
-    timestamp_response = self.pready.get_edge_at_timestamp(timestamp_request).timestamp
+    timestamp_pready   = self.pready.get_edge_at_timestamp(timestamp_request).timestamp
+    timestamp_response = self.pclock.get_edge_at_timestamp(timestamp_pready).timestamp
     prdata  = self.pprot  .get_at_timestamp(timestamp_response).value
     pslverr = self.pprot  .get_at_timestamp(timestamp_response).value
 
