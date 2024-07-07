@@ -33,7 +33,7 @@ class APBTransaction:
     if self.pwrite.has_xz:
       self.operation = APBOperation.XZ
     else:
-      self.operation = APBOperation(self.pwrite.value)
+      self.operation = APBOperation(int(self.pwrite.value))
 
   def __str__(self) -> str:
     return f"[ {self.timestamp_request} - {self.timestamp_response} ] [APB] {self.operation} @{self.paddr}"
