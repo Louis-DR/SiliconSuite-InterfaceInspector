@@ -4,61 +4,119 @@ from pyDigitalWaveTools.vcd.parser import VcdParser, VcdVarScope
 
 
 
+
+
+
 class VCDFormat(Enum):
+  """ Number format of VCD values. """
   BINARY = 0
   REAL   = 1
 
+
+
+
 class VCDValue:
+  """ Represent a value from a VCD with useful methods. """
+
+
+
   def __init__(self, value:str, width:int):
+    """ VCD value from the raw values from the VCD and the width of the signal. """
+
     self.width = width
+
+    # Single character means a 1-bit signal
     if width == 1:
       self.format = VCDFormat.BINARY
       self.value = value[-1]
+
+    # Multiple characters can be a real or multi-bit binary number
     else:
-      if len(value) > 1:
-        identifier_code = value[0]
-        value = value[1:]
-        if identifier_code == 'r' or identifier_code == 'R':
-          self.format = VCDFormat.REAL
-          self.value = value
-        elif identifier_code == 'b' or identifier_code == 'B':
-          self.format = VCDFormat.BINARY
-          if len(value) < width:
-            if value[0] == '1':
-              value = value.rjust(width, '0')
-            else:
-              value = value.rjust(width, value[0])
-          self.value = value
-    value_no_xz = self.value.replace('x','0').replace('X','0').replace('z','0').replace('Z','0')
-    self.has_xz = self.value != value_no_xz
+
+      # Separate the identifier code and the actual value
+      identifier_code = value[0]
+      value           = value[1:]
+
+      # Real number
+      if identifier_code == 'r' or identifier_code == 'R':
+        self.format = VCDFormat.REAL
+        self.value  = value
+
+      # Binary number
+      elif identifier_code == 'b' or identifier_code == 'B':
+        self.format = VCDFormat.BINARY
+
+        # Pad the binary number to the width of the signal
+        if len(value) < width:
+
+          # If the MSB is 1, then pad with 0
+          if value[0] == '1':
+            value = value.rjust(width, '0')
+
+          # Else pad with the last character (0, X or Z)
+          else:
+            value = value.rjust(width, value[0])
+
+        # Store the formatted value
+        self.value = value
+
+    # Flag to easily identify values not fully defined
+    self.has_xz = 'x' in self.value or 'X' in self.value or 'z' in self.value or 'Z' in value
+
+
 
   def __getitem__(self, key):
+    """ The [] operator uses binary indexing instead of string indexing. """
     value_sliced = self.value[::-1][key]
     return VCDValue(value_sliced, len(value_sliced))
 
+
+
   def decimal(self) -> int|None:
+    """ Returns the decimal representation of the value. """
+
+    # Real values are already stored as decimal
     if self.format == VCDFormat.REAL:
       return self.value
+
+    # If there are X or Z, return None
     if self.has_xz:
       return None
+
+    # Else use the Python bin to int function
     return int(self.value, 2)
 
+
+
   def hexadecimal(self):
+    """ Returns the hexadecimal representation of the value. """
+
+    # For real values, use the Python hex function
     if self.format == VCDFormat.REAL:
       return hex(self.value)[2:]
+
+    # Building the result nibble by nibble
     value_hex = ""
     value_bin = self.value
     while value_bin:
       nibble_hex = "?"
       nibble_bin = value_bin[-4:]
       value_bin  = value_bin[:-4]
+
+      # Count the number of 0, 1, X, Z
       count_0 = nibble_bin.count('0')
       count_1 = nibble_bin.count('1')
       count_x = nibble_bin.count('x') + nibble_bin.count('X')
       count_z = nibble_bin.count('z') + nibble_bin.count('Z')
+
+      # If there are 0s or 1s
       if count_0 or count_1:
+
+        # If there are Xs or Zs
         if   count_x: nibble_hex = "X"
         elif count_z: nibble_hex = "Z"
+
+        # Else normal bin to hex
         else:
           nibble_bin = nibble_bin.rjust(4,'0')
           match nibble_bin:
@@ -78,18 +136,42 @@ class VCDValue:
             case '1101': nibble_hex = 'D'
             case '1110': nibble_hex = 'E'
             case '1111': nibble_hex = 'F'
+
+      # Else if only Xs or Zs
       elif count_x: nibble_hex = "x"
       elif count_z: nibble_hex = "z"
+
+      # Append to result string
       value_hex = nibble_hex + value_hex
+
     return value_hex
 
+
+
   def __repr__(self):
+    """ Convert to string with the hexadecimal representation. """
     return self.hexadecimal()
 
+
+
   def __eq__(self, value: object) -> bool:
-    return self.value == str(value)
+    """ Compare two VCDValues with the raw values, else compare using the hexadecimal representation. """
+    if isinstance(value, VCDValue):
+      return self.value == value.value
+    else:
+      return self.__repr__() == str(value)
+
+
+
   def __ne__(self, value: object) -> bool:
-    return self.value != str(value)
+    """ Compare two VCDValues with the raw values, else compare using the hexadecimal representation. """
+    if isinstance(value, VCDValue):
+      return self.value != value.value
+    else:
+      return self.__repr__() != str(value)
+
+
+
 
 
 
@@ -107,6 +189,9 @@ class VCDSample:
 
   def __repr__(self):
     return f"'{self.timestamp}ns:{self.value}'"
+
+
+
 
 
 
