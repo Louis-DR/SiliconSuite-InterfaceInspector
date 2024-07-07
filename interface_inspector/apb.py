@@ -41,20 +41,20 @@ class APBTransaction:
 class APBInterface:
   """ An APB interface with its VCD signals. """
 
-  def __init__(self, vcd_file:VCDFile, path:list[str]=[], prefix:str="", uppercase:bool=False):
+  def __init__(self, vcd_file:VCDFile, path:list[str]=[], prefix:str="", suffix:str="",, uppercase:bool=False):
     """ Get all the signals of the APB bus. """
-    self.pclock  = vcd_file.get_signal(path+[prefix+cond_upper("pclock", uppercase)])
-    self.psel    = vcd_file.get_signal(path+[prefix+cond_upper("psel",   uppercase)])
-    self.penable = vcd_file.get_signal(path+[prefix+cond_upper("penable",uppercase)])
-    self.pready  = vcd_file.get_signal(path+[prefix+cond_upper("pready", uppercase)])
-    self.paddr   = vcd_file.get_signal(path+[prefix+cond_upper("paddr",  uppercase)])
-    self.pprot   = vcd_file.get_signal(path+[prefix+cond_upper("pprot",  uppercase)])
-    self.pnse    = vcd_file.get_signal(path+[prefix+cond_upper("pnse",   uppercase)])
-    self.pwrite  = vcd_file.get_signal(path+[prefix+cond_upper("pwrite", uppercase)])
-    self.pstrb   = vcd_file.get_signal(path+[prefix+cond_upper("pstrb",  uppercase)])
-    self.pwdata  = vcd_file.get_signal(path+[prefix+cond_upper("pwdata", uppercase)])
-    self.prdata  = vcd_file.get_signal(path+[prefix+cond_upper("prdata", uppercase)])
-    self.pslverr = vcd_file.get_signal(path+[prefix+cond_upper("pslverr",uppercase)])
+    self.pclock  = vcd_file.get_signal( path + [prefix + cond_upper("pclock", uppercase) + suffix] )
+    self.psel    = vcd_file.get_signal( path + [prefix + cond_upper("psel",   uppercase) + suffix] )
+    self.penable = vcd_file.get_signal( path + [prefix + cond_upper("penable",uppercase) + suffix] )
+    self.pready  = vcd_file.get_signal( path + [prefix + cond_upper("pready", uppercase) + suffix] )
+    self.paddr   = vcd_file.get_signal( path + [prefix + cond_upper("paddr",  uppercase) + suffix] )
+    self.pprot   = vcd_file.get_signal( path + [prefix + cond_upper("pprot",  uppercase) + suffix] )
+    self.pnse    = vcd_file.get_signal( path + [prefix + cond_upper("pnse",   uppercase) + suffix] )
+    self.pwrite  = vcd_file.get_signal( path + [prefix + cond_upper("pwrite", uppercase) + suffix] )
+    self.pstrb   = vcd_file.get_signal( path + [prefix + cond_upper("pstrb",  uppercase) + suffix] )
+    self.pwdata  = vcd_file.get_signal( path + [prefix + cond_upper("pwdata", uppercase) + suffix] )
+    self.prdata  = vcd_file.get_signal( path + [prefix + cond_upper("prdata", uppercase) + suffix] )
+    self.pslverr = vcd_file.get_signal( path + [prefix + cond_upper("pslverr",uppercase) + suffix] )
 
   def next_transaction(self) -> APBTransaction:
     """ Get the next APB transaction. """
