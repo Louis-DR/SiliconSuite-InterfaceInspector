@@ -4,6 +4,9 @@ from .utils import cond_upper
 
 
 
+
+
+
 class APBOperation(Enum):
   """ Type of APB operation. """
   READ  = 0
@@ -74,6 +77,9 @@ class APBInterface:
     self.pwdata  = vcd_file.get_signal( path + [prefix + cond_upper("pwdata", uppercase) + suffix] )
     self.prdata  = vcd_file.get_signal( path + [prefix + cond_upper("prdata", uppercase) + suffix] )
     self.pslverr = vcd_file.get_signal( path + [prefix + cond_upper("pslverr",uppercase) + suffix] )
+
+
+
 
   def next_transaction(self) -> APBTransaction:
     """ Get the next APB transaction. """
