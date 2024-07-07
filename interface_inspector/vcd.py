@@ -14,11 +14,8 @@ class VCDFormat(Enum):
 
 
 
-
 class VCDValue:
-  """ Represent a value from a VCD with useful methods. """
-
-
+  """ A value from a VCD with useful methods. """
 
   def __init__(self, value:str, width:int):
     """ VCD value from the raw values from the VCD and the width of the signal. """
@@ -152,16 +149,12 @@ class VCDValue:
     """ Convert to string with the hexadecimal representation. """
     return self.hexadecimal()
 
-
-
   def __eq__(self, value: object) -> bool:
     """ Compare two VCDValues with the raw values, else compare using the hexadecimal representation. """
     if isinstance(value, VCDValue):
       return self.value == value.value
     else:
       return self.__repr__() == str(value)
-
-
 
   def __ne__(self, value: object) -> bool:
     """ Compare two VCDValues with the raw values, else compare using the hexadecimal representation. """
@@ -176,18 +169,19 @@ class VCDValue:
 
 
 class VCDSample:
+  """ A sample from a VCD with useful methods. """
+
   def __init__(self,timestamp:int,value:VCDValue):
+    """ VCDSample from a timestamp and a VCDValue. """
     self.timestamp = timestamp
     self.value = value
 
-  @classmethod
-  def from_tuple(classs,tuple:tuple[int,VCDValue]):
-    return classs(tuple[0],tuple[1])
-
   def __tuple__(self):
+    """ Convert of tuple of timestamp and value. """
     return (self.timestamp, self.value)
 
   def __repr__(self):
+    """ String representation with timestamp unit. """
     return f"'{self.timestamp}ns:{self.value}'"
 
 
@@ -196,78 +190,134 @@ class VCDSample:
 
 
 class SearchMethod(Enum):
+  """ Algorithm to search for a timestamp in a VCD. """
   WALKING = 0
   BINARY  = 1
   SMART   = 2
 
 class EdgePolarity(Enum):
+  """ Signal edge polarity. """
   RISING  = 0
   FALLING = 1
 
 class TimeDirection(Enum):
+  """ Search for the next or previous edge. """
   NEXT     = 0
   PREVIOUS = 1
 
 
 
 class VCDSignal:
+  """ A signal of a VCD with its own dump. """
+
   def __init__(self, vcd:list[VCDSample], width:int):
+    """ VCDSignal from a list of VCDSamples and a width. """
     self.vcd            = vcd
     self.current_sample = vcd[0]
     self.current_index  = 0
     self.finished       = False
     self.width          = width
 
+
+
   def get_at_timestamp(self, timestamp:int, move:bool=False) -> VCDSample:
+    """ Get the last sample at or before a timestamp. """
+
+    # Use binary search
     search_index  = bisect_right(self.vcd, timestamp, lo=self.current_index, key=lambda x:x.timestamp)-1
     search_sample = self.vcd[search_index]
+
+    # Update the state of the signal
     if move:
       self.current_index  = search_index
       self.current_sample = search_sample
     return search_sample
 
+
+
   def get_edge(self, polarity:EdgePolarity=EdgePolarity.RISING, direction:TimeDirection=TimeDirection.NEXT, move:bool=False) -> VCDSample:
+    """ Get the next or previous rising or falling edge from the current timestamp. """
+
+    # Iterate over the indices from the current one in the selected direction
     search_index = self.current_index
     while True:
+
+      # Move to next or previous edge
       if direction == TimeDirection.NEXT:
         search_index += 1
       else:
         search_index -= 1
+
+      # If we reached the start or end of the dump
       if search_index == 0 or search_index == len(self.vcd):
+
+        # Update the state of the signal
         if move:
           self.current_index  = search_index
           self.current_sample = search_sample
+
+          # Update the finished flag at the end of the dump
           if direction == TimeDirection.NEXT:
             self.finished = True
+
+        # Return None if no matching edge found
         return None
+
+      # Check the polarity of the edge
       search_sample = self.vcd[search_index]
       if search_sample.value == 1:
+
+        # Update the state of the signal
         if move:
           self.current_index  = search_index
           self.current_sample = search_sample
+
+        # Return the matching edge
         return search_sample
 
+
+
   def get_edge_at_timestamp(self, timestamp:int, polarity:EdgePolarity=EdgePolarity.RISING, direction:TimeDirection=TimeDirection.NEXT, exclusive:bool=False, move:bool=False) -> VCDSample:
+    """ Get the next or previous rising or falling edge from a timestamp. """
+
+    # First move to the timestamp
     search_sample = self.get_at_timestamp(timestamp, move=move)
-    if not (    ( search_sample.timestamp == timestamp )
-            and (  ( polarity == EdgePolarity.RISING  and search_sample.value == 1 )
-                or ( polarity == EdgePolarity.FALLING and search_sample.value == 0 ) ) ):
-      search_sample = self.get_edge(polarity, direction, move=move)
-    return search_sample
+
+    # If we land on a matching edge, return it
+    if (    ( search_sample.timestamp == timestamp )
+        and (  ( polarity == EdgePolarity.RISING  and search_sample.value == 1 )
+            or ( polarity == EdgePolarity.FALLING and search_sample.value == 0 ) ) ):
+      return search_sample
+
+    # Else get the edge from there
+    return self.get_edge(polarity, direction, move=move)
+
+
+
 
 
 
 class VCDFile:
+  """ A VCD file wrapping around pyDigitalWaveTools.VcdParser with useful methods. """
+
   def __init__(self, vcd_path:str):
+    """ Parse the VCD from the file. """
     vcd = VcdParser()
     with open(vcd_path) as vcd_file:
       vcd.parse(vcd_file)
     self.vcd = vcd.scope
 
   def get_signal(self, path:list[str], scope:VcdVarScope=None) -> VCDSignal:
+    """ Get a VCDSignal from the VCD recursively. """
+
+    # Initialize the recursion at the root of the dump scope
     if scope is None:
       scope = self.vcd
+
+    # If the path is empty, the scope is the signal, end of recursion
     if not path:
+
+      # Build the list of samples
       vcd_samples = []
       signal_width = scope.width
       for sample_tuple in scope.data:
@@ -275,10 +325,18 @@ class VCDFile:
         sample_value     = VCDValue(sample_tuple[1], signal_width)
         vcd_sample       = VCDSample(sample_timestamp, sample_value)
         vcd_samples.append(vcd_sample)
+
+      # Return the VCDSignal
       vcd_signal = VCDSignal(vcd_samples, signal_width)
       return vcd_signal
+
+    # Else continue recursion
     else:
+
+      # Check if searched path or signal exists to continue
       if path[0] in scope.children:
         return self.get_signal(path[1:], scope.children[path[0]])
+
+      # Return None if path or signal doesn't exist
       else:
         return None
