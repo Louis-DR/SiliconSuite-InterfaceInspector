@@ -278,14 +278,14 @@ class VCDSignal:
 
 
 
-  def get_edge_at_timestamp(self, timestamp:int, polarity:EdgePolarity=EdgePolarity.RISING, direction:TimeDirection=TimeDirection.NEXT, not_on_timestamp:bool=False, move:bool=False) -> VCDSample:
+  def get_edge_at_timestamp(self, timestamp:int, polarity:EdgePolarity=EdgePolarity.RISING, direction:TimeDirection=TimeDirection.NEXT, match_on_timestamp:bool=True, move:bool=False) -> VCDSample:
     """ Get the next or previous rising or falling edge from a timestamp. """
 
     # First move to the timestamp
     search_sample = self.get_at_timestamp(timestamp, move=move)
 
     # If we land on a matching edge, return it
-    if (    not_on_timestamp
+    if (    match_on_timestamp
         and ( search_sample.timestamp == timestamp )
         and (  ( polarity == EdgePolarity.RISING  and search_sample.value == 1 )
             or ( polarity == EdgePolarity.FALLING and search_sample.value == 0 ) ) ):
