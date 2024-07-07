@@ -2,14 +2,21 @@ from enum import Enum
 from .vcd import VCDFile, VCDValue
 from .utils import cond_upper
 
+
+
 class APBOperation(Enum):
+  """ Type of APB operation. """
   READ  = 0
   WRITE = 1
   XZ    = 2
   def __str__(self):
     return self.name
 
+
+
 class APBTransaction:
+  """ An APB read or write transaction. """
+
   def __init__(self,
                timestamp_request  : int,
                timestamp_response : int,
@@ -20,6 +27,7 @@ class APBTransaction:
                pwdata             : VCDValue,
                prdata             : VCDValue,
                pslverr            : VCDValue):
+    """ Transaction with timestamps and signal values. """
     self.timestamp_request  = timestamp_request
     self.timestamp_response = timestamp_response
     self.paddr   = paddr
@@ -30,13 +38,22 @@ class APBTransaction:
     self.prdata  = prdata
     self.pslverr = pslverr
 
+    # Check if pwrite is X/Z, else cast to enum
     if self.pwrite.has_xz:
       self.operation = APBOperation.XZ
     else:
       self.operation = APBOperation(int(self.pwrite.value))
 
+
+
   def __str__(self) -> str:
+    """ Display the useful information of the transaction. """
     return f"[ {self.timestamp_request} - {self.timestamp_response} ] [APB] {self.operation} @{self.paddr}"
+
+
+
+
+
 
 class APBInterface:
   """ An APB interface with its VCD signals. """
