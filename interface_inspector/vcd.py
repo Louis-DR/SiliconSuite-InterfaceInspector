@@ -43,6 +43,46 @@ class VCDValue:
       return None
     return int(self.value, 2)
 
+  def hexadecimal(self):
+    if self.format == VCDFormat.REAL:
+      return hex(self.value)[2:]
+    value_hex = ""
+    value_bin = self.value[::-1]
+    while value:
+      nibble_hex = "?"
+      nibble_bin = value[-4:]
+      value = value[:-4]
+      count_0 = nibble_bin.count('0')
+      count_1 = nibble_bin.count('1')
+      count_x = nibble_bin.count('x') + nibble_bin.count('X')
+      count_z = nibble_bin.count('z') + nibble_bin.count('Z')
+      if count_0 or count_1:
+        if   count_x: nibble_hex = "X"
+        elif count_z: nibble_hex = "Z"
+        else:
+          nibble_bin = nibble_bin.rjust(4,'0')
+          match nibble_bin:
+            case '0000': nibble_hex = '0'
+            case '0001': nibble_hex = '1'
+            case '0010': nibble_hex = '2'
+            case '0011': nibble_hex = '3'
+            case '0100': nibble_hex = '4'
+            case '0101': nibble_hex = '5'
+            case '0110': nibble_hex = '6'
+            case '0111': nibble_hex = '7'
+            case '1000': nibble_hex = '8'
+            case '1001': nibble_hex = '9'
+            case '1010': nibble_hex = 'A'
+            case '1011': nibble_hex = 'B'
+            case '1100': nibble_hex = 'C'
+            case '1101': nibble_hex = 'D'
+            case '1110': nibble_hex = 'E'
+            case '1111': nibble_hex = 'F'
+      elif count_x: nibble_hex = "x"
+      elif count_z: nibble_hex = "z"
+      value_hex = nibble_hex + value_hex
+    return value_hex
+
   def __repr__(self):
     return self.value
   def __index__(self):
