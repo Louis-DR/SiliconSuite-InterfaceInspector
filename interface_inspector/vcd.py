@@ -17,10 +17,10 @@ class VCDValue:
       if len(value) > 1:
         identifier_code = value[0]
         value = value[1:]
-        if identifier_code == 'r':
+        if identifier_code == 'r' or identifier_code == 'R':
           self.format = VCDFormat.REAL
           self.value = value
-        elif identifier_code == 'b':
+        elif identifier_code == 'b' or identifier_code == 'B':
           self.format = VCDFormat.BINARY
           if len(value) < width:
             if value[0] == '1':
