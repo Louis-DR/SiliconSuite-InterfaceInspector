@@ -2,60 +2,59 @@ from enum import Enum
 from bisect import bisect_right
 from pyDigitalWaveTools.vcd.parser import VcdParser, VcdVarScope
 
-class ValueFormat(Enum):
-  BINARY      =  2
-  OCTAL       =  8
-  DECIMAL     = 10
-  HEXADECIMAL = 16
+
+
+class VCDFormat(Enum):
+  BINARY = 0
+  REAL   = 1
 
 class VCDValue:
-  def __init__(self, value:str|int):
-    if isinstance(value,int):
-      self.raw_value  = value
-      self.raw_format = None
-      self.value      = value
-      self.has_xz     = False
-    elif isinstance(value,str):
-      self.raw_value = value
-      value_no_xz    = value.replace('x','0').replace('X','0').replace('z','0').replace('Z','0')
-      self.has_xz    = value != value_no_xz
-      if len(value) == 1:
-        self.value      = int(value)
-        self.raw_format = ValueFormat.BINARY
-      else:
-        identifier_code = value[0]
-        value           = value[1:]
-        value_no_xz     = value_no_xz[1:]
-        match identifier_code:
-          case "b" | "B":
-            self.value      = int(value,2)
-            self.raw_format = ValueFormat.BINARY
-          case "r" | "R":
-            self.value      = int(value,10)
-            self.raw_format = ValueFormat.DECIMAL
-  def bin_display(self) -> str:
-    if self.raw_format == ValueFormat.BINARY:
-      return self.raw_value
+  def __init__(self, value:str, width:int):
+    self.width = width
+    if width == 1:
+      self.value = value[-1]
     else:
-      return bin(self.value)[2:]
-  def bin_index(self) -> str:
-    return self.bin_display()[::-1]
+      if len(value) > 1:
+        identifier_code = value[0]
+        value = value[1:]
+        if identifier_code == 'r':
+          self.format = VCDFormat.REAL
+          self.value = value
+        elif identifier_code == 'b':
+          self.format = VCDFormat.BINARY
+          if len(value) < width:
+            if value[0] == '1':
+              value = value.rjust(width, '0')
+            else:
+              value = value.rjust(width, value[0])
+          self.value = value
+    value_no_xz = self.value.replace('x','0').replace('X','0').replace('z','0').replace('Z','0')
+    self.has_xz = self.value != value_no_xz
+    print(f"VCDVALUE {width}'{value} => {self.value}")
+
+  def __getitem__(self, key):
+    value_sliced = self.value[::-1][key]
+    return VCDValue(value_sliced, len(value_sliced))
+
   def __repr__(self):
-    return self.bin_display()
+    return self.value
   def __index__(self):
     return self.value
+
   def __eq__(self, value: object) -> bool:
-    return self.value == value
+    return self.value == str(value)
   def __ne__(self, value: object) -> bool:
-    return self.value != value
+    return self.value != str(value)
   def __ge__(self, value: object) -> bool:
-    return self.value >= value
+    return self.value >= str(value)
   def __le__(self, value: object) -> bool:
-    return self.value <= value
+    return self.value <= str(value)
   def __gt__(self, value: object) -> bool:
-    return self.value >  value
+    return self.value >  str(value)
   def __lt__(self, value: object) -> bool:
-    return self.value <  value
+    return self.value <  str(value)
+
+
 
 class VCDSample:
   def __init__(self,timestamp:int,value:VCDValue):
@@ -72,6 +71,8 @@ class VCDSample:
   def __repr__(self):
     return f"'{self.timestamp}ns:{self.value}'"
 
+
+
 class SearchMethod(Enum):
   WALKING = 0
   BINARY  = 1
@@ -85,12 +86,15 @@ class TimeDirection(Enum):
   NEXT     = 0
   PREVIOUS = 1
 
+
+
 class VCDSignal:
-  def __init__(self, vcd:list[VCDSample]):
+  def __init__(self, vcd:list[VCDSample], width:int):
     self.vcd            = vcd
     self.current_sample = vcd[0]
     self.current_index  = 0
     self.finished       = False
+    self.width          = width
 
   def get_at_timestamp(self, timestamp:int, move:bool=False) -> VCDSample:
     search_index  = bisect_right(self.vcd, timestamp, lo=self.current_index, key=lambda x:x.timestamp)-1
@@ -129,6 +133,8 @@ class VCDSignal:
       search_sample = self.get_edge(polarity, direction, move=move)
     return search_sample
 
+
+
 class VCDFile:
   def __init__(self, vcd_path:str):
     vcd = VcdParser()
@@ -141,12 +147,16 @@ class VCDFile:
       scope = self.vcd
     if not path:
       vcd_samples = []
+      signal_width = scope.width
       for sample_tuple in scope.data:
         sample_timestamp = sample_tuple[0]
-        sample_value     = VCDValue(sample_tuple[1])
+        sample_value     = VCDValue(sample_tuple[1], signal_width)
         vcd_sample       = VCDSample(sample_timestamp, sample_value)
         vcd_samples.append(vcd_sample)
-      vcd_signal = VCDSignal(vcd_samples)
+      vcd_signal = VCDSignal(vcd_samples, signal_width)
       return vcd_signal
     else:
-      return self.get_signal(path[1:], scope.children[path[0]])
+      if path[0] in scope.children:
+        return self.get_signal(path[1:], scope.children[path[0]])
+      else:
+        return None
