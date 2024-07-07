@@ -12,6 +12,7 @@ class VCDValue:
   def __init__(self, value:str, width:int):
     self.width = width
     if width == 1:
+      self.format = VCDFormat.BINARY
       self.value = value[-1]
     else:
       if len(value) > 1:
@@ -34,6 +35,13 @@ class VCDValue:
   def __getitem__(self, key):
     value_sliced = self.value[::-1][key]
     return VCDValue(value_sliced, len(value_sliced))
+
+  def decimal(self) -> int|None:
+    if self.format == VCDFormat.REAL:
+      return self.value
+    if self.has_xz:
+      return None
+    return int(self.value, 2)
 
   def __repr__(self):
     return self.value
