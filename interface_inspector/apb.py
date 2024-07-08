@@ -1,4 +1,5 @@
 from enum import Enum
+from collections.abc import Generator
 from .vcd import VCDFile, VCDValue
 from .utils import change_case
 
@@ -85,7 +86,9 @@ class APBInterface:
     """ Get the next APB transaction. """
 
     # Get the timestamp of the next rising edge of the clock after assertion of penable
-    timestamp_penable = self.penable.get_edge(move=True).timestamp
+    sample_penable    = self.penable.get_edge(move=True)
+    if sample_penable is None: return None
+    timestamp_penable = sample_penable.timestamp
     timestamp_request = self.pclock.get_edge_at_timestamp(timestamp_penable).timestamp
 
     # Sample the request signals
@@ -123,3 +126,13 @@ class APBInterface:
       pslverr            = pslverr,
     )
     return transaction
+
+
+
+  def transactions(self) -> Generator[APBTransaction, None, None]:
+    """ Generator to iterate over all transactions. """
+    while True:
+      next_transaction = self.next_transaction()
+      if next_transaction:
+        yield next_transaction
+      else: return
