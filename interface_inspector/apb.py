@@ -63,7 +63,7 @@ class APBTransaction:
 class APBInterface:
   """ An APB interface with its VCD signals. """
 
-  def __init__(self, vcd_file:VCDFile, path:list[str]=[], prefix:str="", suffix:str="",, uppercase:bool=False):
+  def __init__(self, vcd_file:VCDFile, path:list[str]=[], prefix:str="", suffix:str="", uppercase:bool=False):
     """ Get all the signals of the APB bus. """
     self.pclock  = vcd_file.get_signal( path + [prefix + cond_upper("pclock", uppercase) + suffix] )
     self.psel    = vcd_file.get_signal( path + [prefix + cond_upper("psel",   uppercase) + suffix] )
@@ -105,6 +105,7 @@ class APBInterface:
     pslverr = self.pprot  .get_at_timestamp(timestamp_response).value
 
     # Sample optional signals
+    pnse = None
     if self.pnse:
       pnse  = self.pnse   .get_at_timestamp(timestamp_request).value
 
@@ -114,6 +115,7 @@ class APBInterface:
       timestamp_response = timestamp_response,
       paddr              = paddr,
       pprot              = pprot,
+      pnse               = pnse,
       pwrite             = pwrite,
       pstrb              = pstrb,
       pwdata             = pwdata,
