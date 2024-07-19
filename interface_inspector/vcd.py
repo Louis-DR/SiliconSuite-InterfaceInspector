@@ -199,6 +199,7 @@ class EdgePolarity(Enum):
   """ Signal edge polarity. """
   RISING  = 0
   FALLING = 1
+  ANY     = 2
 
 class TimeDirection(Enum):
   """ Search for the next or previous edge. """
@@ -266,7 +267,8 @@ class VCDSignal:
       # Check the polarity of the edge
       search_sample = self.vcd[search_index]
       if (   (polarity == EdgePolarity.RISING  and search_sample.value == 1)
-          or (polarity == EdgePolarity.FALLING and search_sample.value == 0) ):
+          or (polarity == EdgePolarity.FALLING and search_sample.value == 0)
+          or (polarity == EdgePolarity.ANY) ):
 
         # Update the state of the signal
         if move:
@@ -288,7 +290,8 @@ class VCDSignal:
     if (    match_on_timestamp
         and ( search_sample.timestamp == timestamp )
         and (  ( polarity == EdgePolarity.RISING  and search_sample.value == 1 )
-            or ( polarity == EdgePolarity.FALLING and search_sample.value == 0 ) ) ):
+            or ( polarity == EdgePolarity.FALLING and search_sample.value == 0 )
+            or ( polarity == EdgePolarity.ANY ) ) ):
       return search_sample
 
     # Else get the edge from there
