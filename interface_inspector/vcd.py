@@ -250,7 +250,13 @@ class VCDSignal:
 
 
 
-  def get_edge(self, polarity:EdgePolarity=EdgePolarity.RISING, value:VCDValue=None, comparison:ComparisonOperation=ComparisonOperation.EQUAL_NO_XY, direction:TimeDirection=TimeDirection.NEXT, move:bool=False) -> VCDSample:
+  def get_edge(self,
+               polarity   : EdgePolarity        = EdgePolarity.RISING,
+               value      : VCDValue            = None,
+               comparison : ComparisonOperation = ComparisonOperation.EQUAL_NO_XY,
+               direction  : TimeDirection       = TimeDirection.NEXT,
+               move       : bool                = False
+               ) -> VCDSample:
     """ Get an edge by polarity or value from the current timestamp. """
 
     # Iterate over the indices from the current one in the selected direction
@@ -312,7 +318,12 @@ class VCDSignal:
 
 
 
-  def get_edge_at_timestamp(self, timestamp:int, polarity:EdgePolarity=EdgePolarity.RISING, direction:TimeDirection=TimeDirection.NEXT, match_on_timestamp:bool=True) -> VCDSample:
+  def get_edge_at_timestamp(self,
+                            timestamp          : int,
+                            polarity           : EdgePolarity  = EdgePolarity.RISING,
+                            direction          : TimeDirection = TimeDirection.NEXT,
+                            match_on_timestamp : bool          = True
+                            ) -> VCDSample:
     """ Get the next or previous rising or falling edge from a timestamp. """
 
     # First move to the timestamp

@@ -64,7 +64,12 @@ class APBTransaction:
 class APBInterface:
   """ An APB interface with its VCD signals. """
 
-  def __init__(self, vcd_file:VCDFile, path:list[str]=[], prefix:str="", suffix:str="", uppercase:bool=False):
+  def __init__(self,
+               vcd_file  : VCDFile,
+               path      : list[str] = [],
+               prefix    : str       = "",
+               suffix    : str       = "",
+               uppercase : bool      = False):
     """ Get all the signals of the APB bus. """
     self.pclock  = vcd_file.get_signal( path + [prefix + change_case("pclock", uppercase) + suffix] )
     self.psel    = vcd_file.get_signal( path + [prefix + change_case("psel",   uppercase) + suffix] )
