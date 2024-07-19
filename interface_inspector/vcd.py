@@ -149,20 +149,27 @@ class VCDValue:
     """ Convert to string with the hexadecimal representation. """
     return self.hexadecimal()
 
-  def __eq__(self, value: object) -> bool:
+  def __eq__(self, value:object) -> bool:
     """ Compare two VCDValues with the raw values, else compare using the hexadecimal representation. """
     if isinstance(value, VCDValue):
       return self.value == value.value
     else:
       return self.__repr__() == str(value)
 
-  def __ne__(self, value: object) -> bool:
+  def __ne__(self, value:object) -> bool:
     """ Compare two VCDValues with the raw values, else compare using the hexadecimal representation. """
     if isinstance(value, VCDValue):
       return self.value != value.value
     else:
       return self.__repr__() != str(value)
 
+  def equal_no_xy(self, other:object) -> bool:
+    """ Equality comparison that interprets X and Z as don't care and only checks the LSB. """
+    if isinstance(other,VCDValue):
+      for self_bit, other_bit in zip(self.value, other.value):
+        if self_bit != other_bit and self_bit not in 'xXzZ' and other_bit not in 'xXzZ':
+          return False
+      return True
 
 
 
