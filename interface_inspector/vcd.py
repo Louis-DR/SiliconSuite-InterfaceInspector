@@ -243,8 +243,8 @@ class VCDSignal:
 
 
 
-  def get_edge(self, polarity:EdgePolarity=EdgePolarity.RISING, direction:TimeDirection=TimeDirection.NEXT, move:bool=False) -> VCDSample:
-    """ Get the next or previous rising or falling edge from the current timestamp. """
+  def get_edge(self, polarity:EdgePolarity=EdgePolarity.RISING, value:VCDValue=None, direction:TimeDirection=TimeDirection.NEXT, move:bool=False) -> VCDSample:
+    """ Get an edge by polarity or value from the current timestamp. """
 
     # Iterate over the indices from the current one in the selected direction
     search_index = self.current_index
@@ -271,11 +271,26 @@ class VCDSignal:
         # Return None if no matching edge found
         return None
 
-      # Check the polarity of the edge
+      # Check the search condition of the edge
       search_sample = self.vcd[search_index]
-      if (   (polarity == EdgePolarity.RISING  and search_sample.value == 1)
-          or (polarity == EdgePolarity.FALLING and search_sample.value == 0)
-          or (polarity == EdgePolarity.ANY) ):
+      search_match  = False
+
+      # Search by value
+      if value is not None:
+        search_match = search_sample.value.equal_no_xy(value)
+        print("\n\nMATCHING:")
+        print(value.value)
+        print(search_sample.value.value)
+        print(search_match)
+
+      # Search by edge polarity
+      else:
+        search_match = (   (polarity == EdgePolarity.RISING  and search_sample.value == 1)
+                        or (polarity == EdgePolarity.FALLING and search_sample.value == 0)
+                        or (polarity == EdgePolarity.ANY) )
+
+      # If the search condition matches
+      if search_match:
 
         # Update the state of the signal
         if move:
@@ -302,7 +317,7 @@ class VCDSignal:
       return search_sample
 
     # Else get the edge from there
-    return self.get_edge(polarity, direction, move=move)
+    return self.get_edge(polarity=polarity, direction=direction, move=move)
 
 
 
