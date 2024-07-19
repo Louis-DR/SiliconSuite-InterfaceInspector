@@ -164,7 +164,7 @@ class VCDValue:
       return self.__repr__() != str(value)
 
   def equal_no_xy(self, other:object) -> bool:
-    """ Equality comparison that interprets X and Z as don't care and only checks the LSB. """
+    """ Equality comparison that interprets X and Z as don't care and only checks the LSBs up to the shortest value. """
     if isinstance(other,VCDValue):
       for self_bit, other_bit in zip(self.value, other.value):
         if self_bit != other_bit and self_bit not in 'xXzZ' and other_bit not in 'xXzZ':
@@ -208,6 +208,13 @@ class EdgePolarity(Enum):
   FALLING = 1
   ANY     = 2
 
+class ComparisonOperation(Enum):
+  """ Value comparison operation. """
+  EQUAL_EXACT     = 0
+  EQUAL_NO_XY     = 1
+  NOT_EQUAL_EXACT = 2
+  NOT_EQUAL_NO_XY = 3
+
 class TimeDirection(Enum):
   """ Search for the next or previous edge. """
   NEXT     = 0
@@ -243,7 +250,7 @@ class VCDSignal:
 
 
 
-  def get_edge(self, polarity:EdgePolarity=EdgePolarity.RISING, value:VCDValue=None, direction:TimeDirection=TimeDirection.NEXT, move:bool=False) -> VCDSample:
+  def get_edge(self, polarity:EdgePolarity=EdgePolarity.RISING, value:VCDValue=None, comparison:ComparisonOperation=ComparisonOperation.EQUAL_NO_XY, direction:TimeDirection=TimeDirection.NEXT, move:bool=False) -> VCDSample:
     """ Get an edge by polarity or value from the current timestamp. """
 
     # Iterate over the indices from the current one in the selected direction
@@ -277,11 +284,14 @@ class VCDSignal:
 
       # Search by value
       if value is not None:
-        search_match = search_sample.value.equal_no_xy(value)
-        print("\n\nMATCHING:")
-        print(value.value)
-        print(search_sample.value.value)
-        print(search_match)
+        if comparison == ComparisonOperation.EQUAL_EXACT:
+          search_match = search_sample.value == value
+        elif comparison == ComparisonOperation.EQUAL_NO_XY:
+          search_match = search_sample.value.equal_no_xy(value)
+        elif comparison == ComparisonOperation.NOT_EQUAL_EXACT:
+          search_match = search_sample.value != value
+        elif comparison == ComparisonOperation.NOT_EQUAL_NO_XY:
+          search_match = not search_sample.value.equal_no_xy(value)
 
       # Search by edge polarity
       else:
@@ -302,11 +312,11 @@ class VCDSignal:
 
 
 
-  def get_edge_at_timestamp(self, timestamp:int, polarity:EdgePolarity=EdgePolarity.RISING, direction:TimeDirection=TimeDirection.NEXT, match_on_timestamp:bool=True, move:bool=False) -> VCDSample:
+  def get_edge_at_timestamp(self, timestamp:int, polarity:EdgePolarity=EdgePolarity.RISING, direction:TimeDirection=TimeDirection.NEXT, match_on_timestamp:bool=True) -> VCDSample:
     """ Get the next or previous rising or falling edge from a timestamp. """
 
     # First move to the timestamp
-    search_sample = self.get_at_timestamp(timestamp, move=move)
+    search_sample = self.get_at_timestamp(timestamp, move=True)
 
     # If we land on a matching edge, return it
     if (    match_on_timestamp
@@ -317,7 +327,7 @@ class VCDSignal:
       return search_sample
 
     # Else get the edge from there
-    return self.get_edge(polarity=polarity, direction=direction, move=move)
+    return self.get_edge(polarity=polarity, direction=direction, move=True)
 
 
 
