@@ -109,6 +109,98 @@ class HBM2eRowCommand_PowerDownSelfRefreshExit(HBM2eRowCommand):
 
 
 
+class HBM2eColumnCommand:
+  """ HBM2e column command base type. """
+  pass
+
+class HBM2eColumnCommand_Error(HBM2eColumnCommand):
+  """ HBM2e incorrect column command. """
+  def __init__(self):
+    pass
+  def __repr__(self):
+    return "ERROR"
+
+class HBM2eColumnCommand_Read(HBM2eColumnCommand):
+  """ HBM2e read column command. """
+  def __init__(self,
+               parity         : VCDValue,
+               pseudo_channel : VCDValue,
+               stack_id       : VCDValue,
+               bank_address   : VCDValue,
+               column_address : VCDValue):
+    self.parity         = parity
+    self.pseudo_channel = pseudo_channel
+    self.stack_id       = stack_id
+    self.bank_address   = bank_address
+    self.column_address = column_address
+  def __repr__(self):
+    return f"RD PS{self.pseudo_channel.decimal()} SID{self.stack_id.decimal()} BA{self.bank_address.decimal()} CA{self.column_address.decimal()}"
+
+class HBM2eColumnCommand_ReadAutoPrecharge(HBM2eColumnCommand):
+  """ HBM2e read with auto-precharge column command. """
+  def __init__(self,
+               parity         : VCDValue,
+               pseudo_channel : VCDValue,
+               stack_id       : VCDValue,
+               bank_address   : VCDValue,
+               column_address : VCDValue):
+    self.parity         = parity
+    self.pseudo_channel = pseudo_channel
+    self.stack_id       = stack_id
+    self.bank_address   = bank_address
+    self.column_address = column_address
+  def __repr__(self):
+    return f"RDA PS{self.pseudo_channel.decimal()} SID{self.stack_id.decimal()} BA{self.bank_address.decimal()} CA{self.column_address.decimal()}"
+
+class HBM2eColumnCommand_Write(HBM2eColumnCommand):
+  """ HBM2e write column command. """
+  def __init__(self,
+               parity         : VCDValue,
+               pseudo_channel : VCDValue,
+               stack_id       : VCDValue,
+               bank_address   : VCDValue,
+               column_address : VCDValue):
+    self.parity         = parity
+    self.pseudo_channel = pseudo_channel
+    self.stack_id       = stack_id
+    self.bank_address   = bank_address
+    self.column_address = column_address
+  def __repr__(self):
+    return f"WR PS{self.pseudo_channel.decimal()} SID{self.stack_id.decimal()} BA{self.bank_address.decimal()} CA{self.column_address.decimal()}"
+
+class HBM2eColumnCommand_WriteAutoPrecharge(HBM2eColumnCommand):
+  """ HBM2e write with auto-precharge column command. """
+  def __init__(self,
+               parity         : VCDValue,
+               pseudo_channel : VCDValue,
+               stack_id       : VCDValue,
+               bank_address   : VCDValue,
+               column_address : VCDValue):
+    self.parity         = parity
+    self.pseudo_channel = pseudo_channel
+    self.stack_id       = stack_id
+    self.bank_address   = bank_address
+    self.column_address = column_address
+  def __repr__(self):
+    return f"WRA PS{self.pseudo_channel.decimal()} SID{self.stack_id.decimal()} BA{self.bank_address.decimal()} CA{self.column_address.decimal()}"
+
+class HBM2eColumnCommand_MoreRegisterSet(HBM2eColumnCommand):
+  """ HBM2e mode register set column command. """
+  def __init__(self,
+               parity        : VCDValue,
+               mode_register : VCDValue,
+               op_code       : VCDValue):
+    self.parity        = parity
+    self.mode_register = mode_register
+    self.op_code       = op_code
+  def __repr__(self):
+    return f"MRS MR{self.mode_register.decimal()} OPb{self.op_code.value()}"
+
+
+
+
+
+
 class HBM2eInterface:
   """ An HBM2e interface with its VCD signals. """
 
@@ -250,4 +342,109 @@ class HBM2eInterface:
       next_row_command = self.next_row_command()
       if next_row_command:
         yield next_row_command
+      else: return
+
+  def next_column_command(self):
+    """ Get the next HBM2e column command. """
+
+    # Get the next non-NOP column command
+    sample_C = self.C.get_edge(value=VCDValue("bxxxxxx111",9), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True)
+    if sample_C is None: return None
+
+    # First word of the column command
+    timestamp_column_command_w0 = self.CK_T.get_edge_at_timestamp(sample_C.timestamp, polarity=EdgePolarity.RISING).timestamp
+    column_command_w0 = self.R.get_at_timestamp(timestamp_column_command_w0).value
+
+    # Second word of the column command
+    timestamp_column_command_w1 = self.CK_T.get_edge(polarity=EdgePolarity.FALLING).timestamp
+    column_command_w1 = self.R.get_at_timestamp(timestamp_column_command_w1).value
+
+    # Decode the column command function using the truth table
+    column_command_function = HBM2eColumnCommand_Error
+    if   column_command_w0.equal_no_xy(VCDValue("bxxxxx0101",9)): column_command_function = HBM2eColumnCommand_Read
+    elif column_command_w0.equal_no_xy(VCDValue("bxxxxx1101",9)): column_command_function = HBM2eColumnCommand_ReadAutoPrecharge
+    elif column_command_w0.equal_no_xy(VCDValue("bxxxxx0001",9)): column_command_function = HBM2eColumnCommand_Write
+    elif column_command_w0.equal_no_xy(VCDValue("bxxxxx1001",9)): column_command_function = HBM2eColumnCommand_WriteAutoPrecharge
+    elif column_command_w0.equal_no_xy(VCDValue("bxxxxxx000",9)): column_command_function = HBM2eColumnCommand_MoreRegisterSet
+
+    # Decode the operands of the function
+    if column_command_function == HBM2eColumnCommand_Read:
+      parity         =     column_command_w1[2]
+      pseudo_channel =     column_command_w1[7]
+      stack_id       = (   column_command_w0[8]
+                        ** column_command_w1[0])
+      bank_address   =     column_command_w0[4:7]
+      column_address = (   column_command_w1[3:6]
+                        ** column_command_w1[1])
+      column_command = HBM2eColumnCommand_Read(
+        parity         = parity,
+        pseudo_channel = pseudo_channel,
+        stack_id       = stack_id,
+        bank_address   = bank_address,
+        column_address = column_address,
+      )
+    elif column_command_function == HBM2eColumnCommand_ReadAutoPrecharge:
+      parity         =     column_command_w1[2]
+      pseudo_channel =     column_command_w1[7]
+      stack_id       = (   column_command_w0[8]
+                        ** column_command_w1[0])
+      bank_address   =     column_command_w0[4:7]
+      column_address = (   column_command_w1[3:6]
+                        ** column_command_w1[1])
+      column_command = HBM2eColumnCommand_ReadAutoPrecharge(
+        parity         = parity,
+        pseudo_channel = pseudo_channel,
+        stack_id       = stack_id,
+        bank_address   = bank_address,
+        column_address = column_address,
+      )
+    if column_command_function == HBM2eColumnCommand_Write:
+      parity         =     column_command_w1[2]
+      pseudo_channel =     column_command_w1[7]
+      stack_id       = (   column_command_w0[8]
+                        ** column_command_w1[0])
+      bank_address   =     column_command_w0[4:7]
+      column_address = (   column_command_w1[3:6]
+                        ** column_command_w1[1])
+      column_command = HBM2eColumnCommand_Write(
+        parity         = parity,
+        pseudo_channel = pseudo_channel,
+        stack_id       = stack_id,
+        bank_address   = bank_address,
+        column_address = column_address,
+      )
+    elif column_command_function == HBM2eColumnCommand_WriteAutoPrecharge:
+      parity         =     column_command_w1[2]
+      pseudo_channel =     column_command_w1[7]
+      stack_id       = (   column_command_w0[8]
+                        ** column_command_w1[0])
+      bank_address   =     column_command_w0[4:7]
+      column_address = (   column_command_w1[3:6]
+                        ** column_command_w1[1])
+      column_command = HBM2eColumnCommand_WriteAutoPrecharge(
+        parity         = parity,
+        pseudo_channel = pseudo_channel,
+        stack_id       = stack_id,
+        bank_address   = bank_address,
+        column_address = column_address,
+      )
+    elif column_command_function == HBM2eColumnCommand_MoreRegisterSet:
+      parity        =     column_command_w1[2]
+      mode_register =     column_command_w0[4:7]
+      op_code       = (   column_command_w1[3:7]
+                       ** column_command_w1[0:1])
+      column_command = HBM2eColumnCommand_MoreRegisterSet(
+        parity        = parity,
+        mode_register = mode_register,
+        op_code       = op_code,
+      )
+
+    return column_command
+
+  def column_commands(self) -> Generator[HBM2eColumnCommand, None, None]:
+    """ Generator to iterate over all column commands. """
+    while True:
+      next_column_command = self.next_column_command()
+      if next_column_command:
+        yield next_column_command
       else: return
