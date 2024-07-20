@@ -66,7 +66,7 @@ class VCDValue:
   def __getitem__(self, key) -> VCDValue:
     """ The [] operator uses binary indexing instead of string indexing. """
     value_sliced = self.value[::-1][key]
-    return VCDValue(value_sliced, len(value_sliced))
+    return VCDValue("b"+value_sliced, len(value_sliced))
 
   def __pow__(self, other:VCDValue) -> VCDValue:
     """ Exponentiation overloaded for concatenation. """
