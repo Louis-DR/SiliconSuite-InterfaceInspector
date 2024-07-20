@@ -233,12 +233,12 @@ class HBM2eInterface:
 
     # First word of the row command
     timestamp_row_command_w0 = self.CK_T.get_edge_at_timestamp(sample_R.timestamp, polarity=EdgePolarity.RISING).timestamp
-    row_command_w0 = self.R.get_at_timestamp(timestamp_row_command_w0).value
-    row_command_cke = self.CKE.get_at_timestamp(timestamp_row_command_w0).value
+    row_command_w0 = self.R.get_at_timestamp(timestamp_row_command_w0, move=True).value
+    row_command_cke = self.CKE.get_at_timestamp(timestamp_row_command_w0, move=True).value
 
     # Second word of the row command
     timestamp_row_command_w1 = self.CK_T.get_edge(polarity=EdgePolarity.FALLING).timestamp
-    row_command_w1 = self.R.get_at_timestamp(timestamp_row_command_w1).value
+    row_command_w1 = self.R.get_at_timestamp(timestamp_row_command_w1, move=True).value
 
     # Decode the row command function using the truth table
     row_command_function = HBM2eRowCommand_Error
@@ -255,11 +255,11 @@ class HBM2eInterface:
 
       # Third word of the row command
       timestamp_row_command_w2 = self.CK_T.get_edge(polarity=EdgePolarity.RISING).timestamp
-      row_command_w2 = self.R.get_at_timestamp(timestamp_row_command_w2).value
+      row_command_w2 = self.R.get_at_timestamp(timestamp_row_command_w2, move=True).value
 
       # Fourth word of the row command
       timestamp_row_command_w3 = self.CK_T.get_edge(polarity=EdgePolarity.FALLING).timestamp
-      row_command_w3 = self.R.get_at_timestamp(timestamp_row_command_w3).value
+      row_command_w3 = self.R.get_at_timestamp(timestamp_row_command_w3, move=True).value
 
     # Decode the operands of the function
     row_command = HBM2eRowCommand_Error()
@@ -337,6 +337,8 @@ class HBM2eInterface:
 
     return row_command
 
+
+
   def row_commands(self) -> Generator[HBM2eRowCommand, None, None]:
     """ Generator to iterate over all row commands. """
     while True:
@@ -344,6 +346,8 @@ class HBM2eInterface:
       if next_row_command:
         yield next_row_command
       else: return
+
+
 
   def next_column_command(self):
     """ Get the next HBM2e column command. """
@@ -354,11 +358,11 @@ class HBM2eInterface:
 
     # First word of the column command
     timestamp_column_command_w0 = self.CK_T.get_edge_at_timestamp(sample_C.timestamp, polarity=EdgePolarity.RISING).timestamp
-    column_command_w0 = self.C.get_at_timestamp(timestamp_column_command_w0).value
+    column_command_w0 = self.C.get_at_timestamp(timestamp_column_command_w0, move=True).value
 
     # Second word of the column command
     timestamp_column_command_w1 = self.CK_T.get_edge(polarity=EdgePolarity.FALLING).timestamp
-    column_command_w1 = self.C.get_at_timestamp(timestamp_column_command_w1).value
+    column_command_w1 = self.C.get_at_timestamp(timestamp_column_command_w1, move=True).value
 
     # Decode the column command function using the truth table
     column_command_function = HBM2eColumnCommand_Error
@@ -442,6 +446,8 @@ class HBM2eInterface:
       )
 
     return column_command
+
+
 
   def column_commands(self) -> Generator[HBM2eColumnCommand, None, None]:
     """ Generator to iterate over all column commands. """
