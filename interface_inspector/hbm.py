@@ -262,6 +262,7 @@ class HBM2eInterface:
       row_command_w3 = self.R.get_at_timestamp(timestamp_row_command_w3).value
 
     # Decode the operands of the function
+    row_command = HBM2eRowCommand_Error()
     if row_command_function == HBM2eRowCommand_Activate:
       parity         = (   row_command_w3[2]
                         ** row_command_w1[2])
@@ -353,11 +354,11 @@ class HBM2eInterface:
 
     # First word of the column command
     timestamp_column_command_w0 = self.CK_T.get_edge_at_timestamp(sample_C.timestamp, polarity=EdgePolarity.RISING).timestamp
-    column_command_w0 = self.R.get_at_timestamp(timestamp_column_command_w0).value
+    column_command_w0 = self.C.get_at_timestamp(timestamp_column_command_w0).value
 
     # Second word of the column command
     timestamp_column_command_w1 = self.CK_T.get_edge(polarity=EdgePolarity.FALLING).timestamp
-    column_command_w1 = self.R.get_at_timestamp(timestamp_column_command_w1).value
+    column_command_w1 = self.C.get_at_timestamp(timestamp_column_command_w1).value
 
     # Decode the column command function using the truth table
     column_command_function = HBM2eColumnCommand_Error
@@ -368,6 +369,7 @@ class HBM2eInterface:
     elif column_command_w0.equal_no_xy(VCDValue("bxxxxxx000",9)): column_command_function = HBM2eColumnCommand_MoreRegisterSet
 
     # Decode the operands of the function
+    column_command = HBM2eColumnCommand_Error()
     if column_command_function == HBM2eColumnCommand_Read:
       parity         =     column_command_w1[2]
       pseudo_channel =     column_command_w1[7]
