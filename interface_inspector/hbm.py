@@ -295,13 +295,13 @@ class HBM2eInterface:
       stack_id       = (   row_command_w1[6]
                         ** row_command_w0[2])
       bank_address   = (   row_command_w1[5]
-                        ** row_command_w0[3:5])
+                        ** row_command_w0[3:6])
       row_address    = (   row_command_w0[6]
                         ** row_command_w1[4]
-                        ** row_command_w1[0:1]
-                        ** row_command_w2[0:5]
-                        ** row_command_w3[3:5]
-                        ** row_command_w3[0:1])
+                        ** row_command_w1[0:2]
+                        ** row_command_w2[0:6]
+                        ** row_command_w3[3:6]
+                        ** row_command_w3[0:2])
       row_command = HBM2eRowCommand_Activate (
         timestamp      = timestamp_row_command_w2,
         parity         = parity,
@@ -316,7 +316,7 @@ class HBM2eInterface:
       stack_id       = (   row_command_w0[6]
                         ** row_command_w1[1])
       bank_address   = (   row_command_w1[5]
-                        ** row_command_w0[3:5])
+                        ** row_command_w0[3:6])
       row_command = HBM2eRowCommand_Precharge (
         timestamp      = timestamp_row_command_w0,
         parity         = parity,
@@ -338,7 +338,7 @@ class HBM2eInterface:
       stack_id       = (   row_command_w0[6]
                         ** row_command_w1[1])
       bank_address   = (   row_command_w1[5]
-                        ** row_command_w0[3:5])
+                        ** row_command_w0[3:6])
       row_command = HBM2eRowCommand_SingleBankRefresh (
         timestamp      = timestamp_row_command_w0,
         parity         = parity,
@@ -411,8 +411,8 @@ class HBM2eInterface:
       pseudo_channel =     column_command_w1[7]
       stack_id       = (   column_command_w0[8]
                         ** column_command_w1[0])
-      bank_address   =     column_command_w0[4:7]
-      column_address = (   column_command_w1[3:6]
+      bank_address   =     column_command_w0[4:8]
+      column_address = (   column_command_w1[3:7]
                         ** column_command_w1[1])
       column_command = HBM2eColumnCommand_Read (
         timestamp      = timestamp_column_command_w0,
@@ -427,8 +427,8 @@ class HBM2eInterface:
       pseudo_channel =     column_command_w1[7]
       stack_id       = (   column_command_w0[8]
                         ** column_command_w1[0])
-      bank_address   =     column_command_w0[4:7]
-      column_address = (   column_command_w1[3:6]
+      bank_address   =     column_command_w0[4:8]
+      column_address = (   column_command_w1[3:7]
                         ** column_command_w1[1])
       column_command = HBM2eColumnCommand_ReadAutoPrecharge (
         timestamp      = timestamp_column_command_w0,
@@ -443,8 +443,8 @@ class HBM2eInterface:
       pseudo_channel =     column_command_w1[7]
       stack_id       = (   column_command_w0[8]
                         ** column_command_w1[0])
-      bank_address   =     column_command_w0[4:7]
-      column_address = (   column_command_w1[3:6]
+      bank_address   =     column_command_w0[4:8]
+      column_address = (   column_command_w1[3:7]
                         ** column_command_w1[1])
       column_command = HBM2eColumnCommand_Write (
         timestamp      = timestamp_column_command_w0,
@@ -459,8 +459,8 @@ class HBM2eInterface:
       pseudo_channel =     column_command_w1[7]
       stack_id       = (   column_command_w0[8]
                         ** column_command_w1[0])
-      bank_address   =     column_command_w0[4:7]
-      column_address = (   column_command_w1[3:6]
+      bank_address   =     column_command_w0[4:8]
+      column_address = (   column_command_w1[3:7]
                         ** column_command_w1[1])
       column_command = HBM2eColumnCommand_WriteAutoPrecharge (
         timestamp      = timestamp_column_command_w0,
@@ -472,9 +472,9 @@ class HBM2eInterface:
       )
     elif column_command_function == HBM2eColumnCommand_MoreRegisterSet:
       parity        =     column_command_w1[2]
-      mode_register =     column_command_w0[4:7]
-      op_code       = (   column_command_w1[3:7]
-                       ** column_command_w1[0:1])
+      mode_register =     column_command_w0[4:8]
+      op_code       = (   column_command_w1[3:8]
+                       ** column_command_w1[0:2])
       column_command = HBM2eColumnCommand_MoreRegisterSet (
         timestamp     = timestamp_column_command_w0,
         parity        = parity,
