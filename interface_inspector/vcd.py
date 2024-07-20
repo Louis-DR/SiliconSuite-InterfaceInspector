@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enum import Enum
 from bisect import bisect_right
 from pyDigitalWaveTools.vcd.parser import VcdParser, VcdVarScope
@@ -62,10 +63,14 @@ class VCDValue:
 
 
 
-  def __getitem__(self, key):
+  def __getitem__(self, key) -> VCDValue:
     """ The [] operator uses binary indexing instead of string indexing. """
     value_sliced = self.value[::-1][key]
     return VCDValue(value_sliced, len(value_sliced))
+
+  def __pow__(self, other:VCDValue) -> VCDValue:
+    """ Exponentiation overloaded for concatenation. """
+    return VCDValue("b" + self.value + other.value, self.width + other.width)
 
 
 
@@ -85,7 +90,7 @@ class VCDValue:
 
 
 
-  def hexadecimal(self):
+  def hexadecimal(self) -> str:
     """ Returns the hexadecimal representation of the value. """
 
     # For real values, use the Python hex function
@@ -145,7 +150,7 @@ class VCDValue:
 
 
 
-  def __repr__(self):
+  def __repr__(self) -> str:
     """ Convert to string with the hexadecimal representation. """
     return self.hexadecimal()
 
@@ -163,13 +168,13 @@ class VCDValue:
     else:
       return self.__repr__() != str(value)
 
-  def equal_no_xy(self, other:object) -> bool:
+  def equal_no_xy(self, other:VCDValue) -> bool:
     """ Equality comparison that interprets X and Z as don't care and only checks the LSBs up to the shortest value. """
-    if isinstance(other,VCDValue):
-      for self_bit, other_bit in zip(self.value, other.value):
-        if self_bit != other_bit and self_bit not in 'xXzZ' and other_bit not in 'xXzZ':
-          return False
-      return True
+    for self_bit, other_bit in zip(self.value, other.value):
+      if self_bit != other_bit and self_bit not in 'xXzZ' and other_bit not in 'xXzZ':
+        return False
+    return True
+
 
 
 
