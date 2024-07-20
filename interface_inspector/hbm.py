@@ -237,7 +237,7 @@ class HBM2eInterface:
     row_command_cke = self.CKE.get_at_timestamp(timestamp_row_command_w0, move=True).value
 
     # Second word of the row command
-    timestamp_row_command_w1 = self.CK_T.get_edge(polarity=EdgePolarity.FALLING).timestamp
+    timestamp_row_command_w1 = self.CK_T.get_edge(polarity=EdgePolarity.FALLING, move=True).timestamp
     row_command_w1 = self.R.get_at_timestamp(timestamp_row_command_w1, move=True).value
 
     # Decode the row command function using the truth table
@@ -254,11 +254,11 @@ class HBM2eInterface:
     if row_command_function == HBM2eRowCommand_Activate:
 
       # Third word of the row command
-      timestamp_row_command_w2 = self.CK_T.get_edge(polarity=EdgePolarity.RISING).timestamp
+      timestamp_row_command_w2 = self.CK_T.get_edge(polarity=EdgePolarity.RISING, move=True).timestamp
       row_command_w2 = self.R.get_at_timestamp(timestamp_row_command_w2, move=True).value
 
       # Fourth word of the row command
-      timestamp_row_command_w3 = self.CK_T.get_edge(polarity=EdgePolarity.FALLING).timestamp
+      timestamp_row_command_w3 = self.CK_T.get_edge(polarity=EdgePolarity.FALLING, move=True).timestamp
       row_command_w3 = self.R.get_at_timestamp(timestamp_row_command_w3, move=True).value
 
     # Decode the operands of the function
@@ -361,7 +361,7 @@ class HBM2eInterface:
     column_command_w0 = self.C.get_at_timestamp(timestamp_column_command_w0, move=True).value
 
     # Second word of the column command
-    timestamp_column_command_w1 = self.CK_T.get_edge(polarity=EdgePolarity.FALLING).timestamp
+    timestamp_column_command_w1 = self.CK_T.get_edge(polarity=EdgePolarity.FALLING, move=True).timestamp
     column_command_w1 = self.C.get_at_timestamp(timestamp_column_command_w1, move=True).value
 
     # Decode the column command function using the truth table
