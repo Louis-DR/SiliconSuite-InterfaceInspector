@@ -401,3 +401,55 @@ class DDR5Interface:
     self.DQS_C = vcd_file.get_signal( self.paths.DQS_C .split('.') )
     self.DQ    = vcd_file.get_signal( self.paths.DQ    .split('.') )
     self.CB    = vcd_file.get_signal( self.paths.CB    .split('.') )
+
+
+
+  def next_command(self):
+    """ Get the next DDR5 command. """
+
+    # Get the next command
+    chip_select_width = self.CS_N.width
+    chip_select_idle = VCDValue("b"+chip_select_width*"1",chip_select_width)
+    sample_CSN = self.CS_N.get_edge(value=chip_select_idle, comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True)
+    if sample_CSN is None: return None
+
+    # Decode the chip select
+    chip_select = 0
+    for chip_select_index in range(chip_select_width):
+      chip_select_test = VCDValue("b"+(chip_select_width-chip_select_index-1)*"1"+"0"+chip_select_index*"1", chip_select_width)
+      if sample_CSN.value.equal_no_xy(chip_select_test):
+        chip_select = chip_select_index
+        break
+
+    # Four words (UIs) of the command
+    command_words = []
+    command_words_timestamps = [self.CK_T.get_edge_at_timestamp(sample_CSN.timestamp, polarity=EdgePolarity.RISING).timestamp]
+    for word_index in range(4):
+      command_words.append(self.CA.get_at_timestamp(command_words_timestamps[-1], move=True).value)
+      command_words_timestamps.append(self.CK_T.get_edge(polarity=EdgePolarity.RISING, move=True).timestamp)
+
+    # Decode the command function using the truth table
+    # Note: we are only focusing on the main decoding bits of the command truth table (not the H/L not highlighted in the specification)
+    command_function = DDR5Command_Error
+    if   command_words[0].equal_no_xy(VCDValue("bxxxxx00",7)):                                                          command_function = DDR5Command_Activate
+    elif command_words[0].equal_no_xy(VCDValue("bxx01001",7)) and command_words[3].equal_no_xy(VCDValue("bxxx1xxx",7)): command_function = DDR5Command_WritePattern
+    elif command_words[0].equal_no_xy(VCDValue("bxx01001",7)) and command_words[3].equal_no_xy(VCDValue("bxxx0xxx",7)): command_function = DDR5Command_WritePatternAutoPrecharge
+    elif command_words[0].equal_no_xy(VCDValue("bxx00101",7))                                                         : command_function = DDR5Command_ModeRegisterWrite
+    elif command_words[0].equal_no_xy(VCDValue("bxx10101",7))                                                         : command_function = DDR5Command_ModeRegisterRead
+    elif command_words[0].equal_no_xy(VCDValue("bxx01101",7)) and command_words[3].equal_no_xy(VCDValue("bxxx1xxx",7)): command_function = DDR5Command_Write
+    elif command_words[0].equal_no_xy(VCDValue("bxx01101",7)) and command_words[3].equal_no_xy(VCDValue("bxxx0xxx",7)): command_function = DDR5Command_WriteAutoPrecharge
+    elif command_words[0].equal_no_xy(VCDValue("bxx11101",7)) and command_words[3].equal_no_xy(VCDValue("bxxx1xxx",7)): command_function = DDR5Command_Read
+    elif command_words[0].equal_no_xy(VCDValue("bxx11101",7)) and command_words[3].equal_no_xy(VCDValue("bxxx0xxx",7)): command_function = DDR5Command_ReadAutoPrecharge
+    elif command_words[0].equal_no_xy(VCDValue("bxx00011",7)) and command_words[1].equal_no_xy(VCDValue("bx0xxxxx",7)): command_function = DDR5Command_VrefCA
+    elif command_words[0].equal_no_xy(VCDValue("bxx00011",7)) and command_words[1].equal_no_xy(VCDValue("bx1xxxxx",7)): command_function = DDR5Command_VrefCS
+    elif command_words[0].equal_no_xy(VCDValue("bxx10011",7)) and command_words[1].equal_no_xy(VCDValue("bxxx01xx",7)): command_function = DDR5Command_RefreshAll
+    elif command_words[0].equal_no_xy(VCDValue("bxx10011",7)) and command_words[1].equal_no_xy(VCDValue("bxxx00xx",7)): command_function = DDR5Command_RefreshManagementAll
+    elif command_words[0].equal_no_xy(VCDValue("bxx10011",7)) and command_words[1].equal_no_xy(VCDValue("bxxx11xx",7)): command_function = DDR5Command_RefreshSameBank
+    elif command_words[0].equal_no_xy(VCDValue("bxx10011",7)) and command_words[1].equal_no_xy(VCDValue("bxxx10xx",7)): command_function = DDR5Command_RefreshManagementSameBank
+    elif command_words[0].equal_no_xy(VCDValue("bxx01011",7)) and command_words[1].equal_no_xy(VCDValue("bxxx0xxx",7)): command_function = DDR5Command_PrechargeAll
+    elif command_words[0].equal_no_xy(VCDValue("bxx01011",7)) and command_words[1].equal_no_xy(VCDValue("bxxx1xxx",7)): command_function = DDR5Command_PrechargeSameBank
+    elif command_words[0].equal_no_xy(VCDValue("bxx11011",7))                                                         : command_function = DDR5Command_Precharge
+    elif command_words[0].equal_no_xy(VCDValue("bxx10111",7)) and command_words[1].equal_no_xy(VCDValue("bxxx01xx",7)): command_function = DDR5Command_SelfRefreshEntry
+    elif command_words[0].equal_no_xy(VCDValue("bxx10111",7)) and command_words[1].equal_no_xy(VCDValue("bxxx00xx",7)): command_function = DDR5Command_SelfRefreshEntryWithFrequencyChange
+    elif command_words[0].equal_no_xy(VCDValue("bxx10111",7)) and command_words[1].equal_no_xy(VCDValue("bxxx1xxx",7)): command_function = DDR5Command_PowerDownEntry
+    elif command_words[0].equal_no_xy(VCDValue("bxx01111",7))                                                         : command_function = DDR5Command_MultiPurposeCommand
