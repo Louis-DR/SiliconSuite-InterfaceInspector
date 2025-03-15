@@ -244,7 +244,7 @@ class VCDSignal:
     """ Get the last sample at or before a timestamp. """
 
     # Use binary search
-    search_index  = bisect_right(self.vcd, timestamp, lo=self.current_index, key=lambda x:x.timestamp)-1
+    search_index  = bisect_right(self.vcd, timestamp, key=lambda x:x.timestamp)-1
     search_sample = self.vcd[search_index]
 
     # Update the state of the signal
