@@ -413,7 +413,7 @@ class HBM2eInterface:
                         ** column_command_w1[0])
       bank_address   =     column_command_w0[4:8]
       column_address = (   column_command_w1[3:7]
-                        ** column_command_w1[1])
+                        ** column_command_w1[1]) << 1
       column_command = HBM2eColumnCommand_Read (
         timestamp      = timestamp_column_command_w0,
         parity         = parity,
@@ -429,7 +429,7 @@ class HBM2eInterface:
                         ** column_command_w1[0])
       bank_address   =     column_command_w0[4:8]
       column_address = (   column_command_w1[3:7]
-                        ** column_command_w1[1])
+                        ** column_command_w1[1]) << 1
       column_command = HBM2eColumnCommand_ReadAutoPrecharge (
         timestamp      = timestamp_column_command_w0,
         parity         = parity,
@@ -445,7 +445,7 @@ class HBM2eInterface:
                         ** column_command_w1[0])
       bank_address   =     column_command_w0[4:8]
       column_address = (   column_command_w1[3:7]
-                        ** column_command_w1[1])
+                        ** column_command_w1[1]) << 1
       column_command = HBM2eColumnCommand_Write (
         timestamp      = timestamp_column_command_w0,
         parity         = parity,
@@ -461,7 +461,7 @@ class HBM2eInterface:
                         ** column_command_w1[0])
       bank_address   =     column_command_w0[4:8]
       column_address = (   column_command_w1[3:7]
-                        ** column_command_w1[1])
+                        ** column_command_w1[1]) << 1
       column_command = HBM2eColumnCommand_WriteAutoPrecharge (
         timestamp      = timestamp_column_command_w0,
         parity         = parity,
