@@ -207,7 +207,7 @@ class HBM2eColumnCommand_WriteAutoPrecharge(HBM2eColumnCommand):
   def __repr__(self):
     return f"[ {self.timestamp} ] WRA PS{self.pseudo_channel.decimal()} SID{self.stack_id.decimal()} BA{self.bank_address.decimal()} CA{self.column_address.decimal()}"
 
-class HBM2eColumnCommand_MoreRegisterSet(HBM2eColumnCommand):
+class HBM2eColumnCommand_ModeRegisterSet(HBM2eColumnCommand):
   """ HBM2e mode register set column command. """
   def __init__(self,
                timestamp     : int,
@@ -402,7 +402,7 @@ class HBM2eInterface:
     elif column_command_w0.equal_no_xy(VCDValue("bxxxxx1101",9)): column_command_function = HBM2eColumnCommand_ReadAutoPrecharge
     elif column_command_w0.equal_no_xy(VCDValue("bxxxxx0001",9)): column_command_function = HBM2eColumnCommand_Write
     elif column_command_w0.equal_no_xy(VCDValue("bxxxxx1001",9)): column_command_function = HBM2eColumnCommand_WriteAutoPrecharge
-    elif column_command_w0.equal_no_xy(VCDValue("bxxxxxx000",9)): column_command_function = HBM2eColumnCommand_MoreRegisterSet
+    elif column_command_w0.equal_no_xy(VCDValue("bxxxxxx000",9)): column_command_function = HBM2eColumnCommand_ModeRegisterSet
 
     # Decode the operands of the function
     column_command = HBM2eColumnCommand_Error(timestamp = timestamp_column_command_w0)
@@ -470,12 +470,12 @@ class HBM2eInterface:
         bank_address   = bank_address,
         column_address = column_address,
       )
-    elif column_command_function == HBM2eColumnCommand_MoreRegisterSet:
+    elif column_command_function == HBM2eColumnCommand_ModeRegisterSet:
       parity        =     column_command_w1[2]
       mode_register =     column_command_w0[4:8]
       op_code       = (   column_command_w1[3:8]
                        ** column_command_w1[0:2])
-      column_command = HBM2eColumnCommand_MoreRegisterSet (
+      column_command = HBM2eColumnCommand_ModeRegisterSet (
         timestamp     = timestamp_column_command_w0,
         parity        = parity,
         mode_register = mode_register,
