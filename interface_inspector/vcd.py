@@ -72,6 +72,17 @@ class VCDValue:
     """ Exponentiation overloaded for concatenation. """
     return VCDValue("b" + self.value + other.value, self.width + other.width)
 
+  def __rshift__(self, other:int) -> VCDValue:
+    """ Right shift. """
+    if other >= self.width:
+      return VCDValue("0", 1)
+    else:
+      return VCDValue("b" + self.value[other:], self.width - other)
+
+  def __lshift__(self, other:int) -> VCDValue:
+    """ Left shift. """
+    return VCDValue("b" + self.value + other*"0", self.width + other)
+
 
 
   def decimal(self) -> int|None:
