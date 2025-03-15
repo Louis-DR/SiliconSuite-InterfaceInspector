@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Generator
 from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
-from .utils import change_case
+from .utils import change_case, command_str
 
 
 
@@ -20,7 +20,7 @@ class DDR5Command_Error(DDR5Command):
     self.timestamp   = timestamp
     self.chip_select = chip_select
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} ERROR"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} ERROR"
 
 class DDR5Command_Activate(DDR5Command):
   """ DDR5 activate command. """
@@ -38,7 +38,7 @@ class DDR5Command_Activate(DDR5Command):
     self.bank_address       = bank_address
     self.row_address        = row_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} ACT CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} R{self.row_address.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} ACT CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} R{self.row_address.decimal()}"
 
 class DDR5Command_WritePattern(DDR5Command):
   """ DDR5 write pattern command. """
@@ -56,7 +56,7 @@ class DDR5Command_WritePattern(DDR5Command):
     self.bank_address       = bank_address
     self.column_address     = column_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} WRP CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} C{self.column_address.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} WRP CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} C{self.column_address.decimal()}"
 
 class DDR5Command_WritePatternAutoPrecharge(DDR5Command):
   """ DDR5 write pattern with auto-precharge command. """
@@ -74,7 +74,7 @@ class DDR5Command_WritePatternAutoPrecharge(DDR5Command):
     self.bank_address       = bank_address
     self.column_address     = column_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} WRPA CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} C{self.column_address.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} WRPA CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} C{self.column_address.decimal()}"
 
 class DDR5Command_ModeRegisterWrite(DDR5Command):
   """ DDR5 mode register write command. """
@@ -90,7 +90,7 @@ class DDR5Command_ModeRegisterWrite(DDR5Command):
     self.operation     = operation
     self.control_word  = control_word
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} MRW MRA{self.mode_register.decimal()} OP{self.operation.decimal()} CW{self.control_word.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} MRW MRA{self.mode_register.decimal()} OP{self.operation.decimal()} CW{self.control_word.decimal()}"
 
 class DDR5Command_ModeRegisterRead(DDR5Command):
   """ DDR5 mode register read command. """
@@ -104,7 +104,7 @@ class DDR5Command_ModeRegisterRead(DDR5Command):
     self.mode_register = mode_register
     self.control_word  = control_word
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} MRR MRA{self.mode_register.decimal()} CW{self.control_word.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} MRR MRA{self.mode_register.decimal()} CW{self.control_word.decimal()}"
 
 class DDR5Command_Write(DDR5Command):
   """ DDR5 write command. """
@@ -126,7 +126,7 @@ class DDR5Command_Write(DDR5Command):
     self.burst_length       = burst_length
     self.partial_write      = partial_write
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} WR CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} C{self.column_address.decimal()} BL{self.burst_length.decimal()} WRP{self.partial_write.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} WR CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} C{self.column_address.decimal()} BL{self.burst_length.decimal()} WRP{self.partial_write.decimal()}"
 
 class DDR5Command_WriteAutoPrecharge(DDR5Command):
   """ DDR5 write with auto-precharge command. """
@@ -148,7 +148,7 @@ class DDR5Command_WriteAutoPrecharge(DDR5Command):
     self.burst_length       = burst_length
     self.partial_write      = partial_write
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} WRA CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} C{self.column_address.decimal()} BL{self.burst_length.decimal()} WRP{self.partial_write.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} WRA CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} C{self.column_address.decimal()} BL{self.burst_length.decimal()} WRP{self.partial_write.decimal()}"
 
 class DDR5Command_Read(DDR5Command):
   """ DDR5 read command. """
@@ -168,7 +168,7 @@ class DDR5Command_Read(DDR5Command):
     self.column_address     = column_address
     self.burst_length       = burst_length
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} RD CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} C{self.column_address.decimal()} BL{self.burst_length.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} RD CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} C{self.column_address.decimal()} BL{self.burst_length.decimal()}"
 
 class DDR5Command_ReadAutoPrecharge(DDR5Command):
   """ DDR5 read with auto-precharge command. """
@@ -188,7 +188,7 @@ class DDR5Command_ReadAutoPrecharge(DDR5Command):
     self.column_address     = column_address
     self.burst_length       = burst_length
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} RDA CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} C{self.column_address.decimal()} BL{self.burst_length.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} RDA CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()} C{self.column_address.decimal()} BL{self.burst_length.decimal()}"
 
 class DDR5Command_VrefCA(DDR5Command):
   """ DDR5 VrefCA command. """
@@ -200,7 +200,7 @@ class DDR5Command_VrefCA(DDR5Command):
     self.chip_select = chip_select
     self.operation   = operation
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} VrefCA OP{self.operation.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} VrefCA OP{self.operation.decimal()}"
 
 class DDR5Command_VrefCS(DDR5Command):
   """ DDR5 VrefCS command. """
@@ -212,7 +212,7 @@ class DDR5Command_VrefCS(DDR5Command):
     self.chip_select = chip_select
     self.operation   = operation
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} VrefCS OP{self.operation.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} VrefCS OP{self.operation.decimal()}"
 
 class DDR5Command_RefreshAll(DDR5Command):
   """ DDR5 refresh all command. """
@@ -226,7 +226,7 @@ class DDR5Command_RefreshAll(DDR5Command):
     self.chip_id               = chip_id
     self.refresh_interval_rate = refresh_interval_rate
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} REFab CID{self.chip_id.decimal()} RIR{self.refresh_interval_rate.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} REFab CID{self.chip_id.decimal()} RIR{self.refresh_interval_rate.decimal()}"
 
 class DDR5Command_RefreshManagementAll(DDR5Command):
   """ DDR5 refresh management all command. """
@@ -238,7 +238,7 @@ class DDR5Command_RefreshManagementAll(DDR5Command):
     self.chip_select = chip_select
     self.chip_id     = chip_id
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} RFMab CID{self.chip_id.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} RFMab CID{self.chip_id.decimal()}"
 
 class DDR5Command_RefreshSameBank(DDR5Command):
   """ DDR5 refresh same bank command. """
@@ -254,7 +254,7 @@ class DDR5Command_RefreshSameBank(DDR5Command):
     self.bank_address          = bank_address
     self.refresh_interval_rate = refresh_interval_rate
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} REFsb CID{self.chip_id.decimal()} BA{self.bank_address.decimal()} RIR{self.refresh_interval_rate.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} REFsb CID{self.chip_id.decimal()} BA{self.bank_address.decimal()} RIR{self.refresh_interval_rate.decimal()}"
 
 class DDR5Command_RefreshManagementSameBank(DDR5Command):
   """ DDR5 refresh management same bank command. """
@@ -268,7 +268,7 @@ class DDR5Command_RefreshManagementSameBank(DDR5Command):
     self.chip_id      = chip_id
     self.bank_address = bank_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} RFMsb CID{self.chip_id.decimal()} BA{self.bank_address.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} RFMsb CID{self.chip_id.decimal()} BA{self.bank_address.decimal()}"
 
 class DDR5Command_PrechargeAll(DDR5Command):
   """ DDR5 precharge all command. """
@@ -280,7 +280,7 @@ class DDR5Command_PrechargeAll(DDR5Command):
     self.chip_select = chip_select
     self.chip_id     = chip_id
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} PREab CID{self.chip_id.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} PREab CID{self.chip_id.decimal()}"
 
 class DDR5Command_PrechargeSameBank(DDR5Command):
   """ DDR5 precharge same bank command. """
@@ -294,7 +294,7 @@ class DDR5Command_PrechargeSameBank(DDR5Command):
     self.chip_id      = chip_id
     self.bank_address = bank_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} PREab CID{self.chip_id.decimal()} BA{self.bank_address.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} PREab CID{self.chip_id.decimal()} BA{self.bank_address.decimal()}"
 
 class DDR5Command_Precharge(DDR5Command):
   """ DDR5 precharge command. """
@@ -310,7 +310,7 @@ class DDR5Command_Precharge(DDR5Command):
     self.bank_group_address = bank_group_address
     self.bank_address       = bank_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} PREpb CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} PREpb CID{self.chip_id.decimal()} BG{self.bank_group_address.decimal()} BA{self.bank_address.decimal()}"
 
 class DDR5Command_SelfRefreshEntry(DDR5Command):
   """ DDR5 self refresh entry command. """
@@ -320,7 +320,7 @@ class DDR5Command_SelfRefreshEntry(DDR5Command):
     self.timestamp   = timestamp
     self.chip_select = chip_select
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} SRE"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} SRE"
 
 class DDR5Command_SelfRefreshEntryWithFrequencyChange(DDR5Command):
   """ DDR5 self refresh entry with frequency change command. """
@@ -330,7 +330,7 @@ class DDR5Command_SelfRefreshEntryWithFrequencyChange(DDR5Command):
     self.timestamp   = timestamp
     self.chip_select = chip_select
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} SREF"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} SREF"
 
 class DDR5Command_PowerDownEntry(DDR5Command):
   """ DDR5 power down entry command. """
@@ -342,7 +342,7 @@ class DDR5Command_PowerDownEntry(DDR5Command):
     self.chip_select        = chip_select
     self.on_die_termination = on_die_termination
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} PDE ODT{self.on_die_termination.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} PDE ODT{self.on_die_termination.decimal()}"
 
 class DDR5Command_MultiPurposeCommand(DDR5Command):
   """ DDR5 multi-purpose command. """
@@ -354,7 +354,7 @@ class DDR5Command_MultiPurposeCommand(DDR5Command):
     self.chip_select = chip_select
     self.operation   = operation
   def __repr__(self):
-    return f"[ {self.timestamp} ] CS{self.chip_select} MPC OP{self.operation.decimal()}"
+    return f"[ {self.timestamp} ] CS{self.chip_select.decimal()} MPC OP{self.operation.decimal()}"
 
 
 
@@ -419,7 +419,7 @@ class DDR5Interface:
     for chip_select_index in range(chip_select_width):
       chip_select_test = VCDValue("b"+(chip_select_width-chip_select_index-1)*"1"+"0"+chip_select_index*"1", chip_select_width)
       if sample_CSN.value.equal_no_xy(chip_select_test):
-        chip_select = chip_select_index
+        chip_select = VCDValue(f"r{chip_select_index}",0)
         break
 
     # Four words (UIs) of the command
