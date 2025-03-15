@@ -213,13 +213,13 @@ class HBM2eColumnCommand_ModeRegisterSet(HBM2eColumnCommand):
                timestamp     : int,
                parity        : VCDValue,
                mode_register : VCDValue,
-               op_code       : VCDValue):
+               operation     : VCDValue):
     self.timestamp     = timestamp
     self.parity        = parity
     self.mode_register = mode_register
-    self.op_code       = op_code
+    self.operation     = operation
   def __repr__(self):
-    return f"[ {self.timestamp} ] MRS MR{self.mode_register.decimal()} OPb{self.op_code.value()}"
+    return f"[ {self.timestamp} ] MRS MR{self.mode_register.decimal()} OPb{self.operation.decimal()}"
 
 
 
@@ -473,13 +473,13 @@ class HBM2eInterface:
     elif column_command_function == HBM2eColumnCommand_ModeRegisterSet:
       parity        =     column_command_w1[2]
       mode_register =     column_command_w0[4:8]
-      op_code       = (   column_command_w1[3:8]
+      operation     = (   column_command_w1[3:8]
                        ** column_command_w1[0:2])
       column_command = HBM2eColumnCommand_ModeRegisterSet (
         timestamp     = timestamp_column_command_w0,
         parity        = parity,
         mode_register = mode_register,
-        op_code       = op_code,
+        operation     = operation,
       )
 
     return column_command
