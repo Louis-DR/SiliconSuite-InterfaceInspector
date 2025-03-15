@@ -344,7 +344,7 @@ class VCDSignal:
                             ) -> VCDSample:
     """ Get the next or previous rising or falling edge from a timestamp. """
 
-    # First move to the timestamp
+    # First move to the last edge at or before the timestamp
     search_sample = self.get_at_timestamp(timestamp, move=True)
 
     # If we land on a matching edge, return it
