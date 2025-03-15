@@ -1,4 +1,4 @@
-from collections.abc import Generator
+from typing import Generator
 from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
 from .utils import change_case
 
