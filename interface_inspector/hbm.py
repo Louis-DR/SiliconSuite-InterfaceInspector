@@ -113,7 +113,7 @@ class HBM2eRowCommand_SelfRefreshEntry(HBM2eRowCommand):
     return f"[ {self.timestamp} ] SRE"
 
 class HBM2eRowCommand_PowerDownSelfRefreshExit(HBM2eRowCommand):
-  """ HBM2e power-down and self-refresh row command. """
+  """ HBM2e power-down or self-refresh exit row command. """
   def __init__(self, timestamp:int):
     self.timestamp = timestamp
   def __repr__(self):
