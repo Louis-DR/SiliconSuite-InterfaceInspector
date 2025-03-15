@@ -290,18 +290,18 @@ class HBM2eInterface:
     row_command = HBM2eRowCommand_Error(timestamp = timestamp_row_command_w0)
     if row_command_function == HBM2eRowCommand_Activate:
       parity         = (   row_command_w3[2]
-                        ** row_command_w1[2])
+                        ** row_command_w1[2] )
       pseudo_channel =     row_command_w1[3]
       stack_id       = (   row_command_w1[6]
-                        ** row_command_w0[2])
+                        ** row_command_w0[2] )
       bank_address   = (   row_command_w1[5]
-                        ** row_command_w0[3:6])
+                        ** row_command_w0[3:6] )
       row_address    = (   row_command_w0[6]
                         ** row_command_w1[4]
                         ** row_command_w1[0:2]
                         ** row_command_w2[0:6]
                         ** row_command_w3[3:6]
-                        ** row_command_w3[0:2])
+                        ** row_command_w3[0:2] )
       row_command = HBM2eRowCommand_Activate (
         timestamp      = timestamp_row_command_w2,
         parity         = parity,
@@ -314,9 +314,9 @@ class HBM2eInterface:
       parity         =     row_command_w1[2]
       pseudo_channel =     row_command_w1[3]
       stack_id       = (   row_command_w0[6]
-                        ** row_command_w1[1])
+                        ** row_command_w1[1] )
       bank_address   = (   row_command_w1[5]
-                        ** row_command_w0[3:6])
+                        ** row_command_w0[3:6] )
       row_command = HBM2eRowCommand_Precharge (
         timestamp      = timestamp_row_command_w0,
         parity         = parity,
@@ -336,9 +336,9 @@ class HBM2eInterface:
       parity         =     row_command_w1[2]
       pseudo_channel =     row_command_w1[3]
       stack_id       = (   row_command_w0[6]
-                        ** row_command_w1[1])
+                        ** row_command_w1[1] )
       bank_address   = (   row_command_w1[5]
-                        ** row_command_w0[3:6])
+                        ** row_command_w0[3:6] )
       row_command = HBM2eRowCommand_SingleBankRefresh (
         timestamp      = timestamp_row_command_w0,
         parity         = parity,
