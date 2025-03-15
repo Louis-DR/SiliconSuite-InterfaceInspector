@@ -280,7 +280,9 @@ class VCDSignal:
         # Update the state of the signal
         if move:
           self.current_index  = search_index
-          self.current_sample = search_sample
+          if search_index == len(self.vcd):
+            self.current_sample = self.vcd[-1]
+          else: self.current_sample = self.vcd[search_index]
 
           # Update the finished flag at the end of the dump
           if direction == TimeDirection.NEXT:
