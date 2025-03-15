@@ -275,7 +275,7 @@ class HBM2eInterface:
 
 
 
-  def next_row_command(self):
+  def next_row_command(self) -> HBM2eRowCommand:
     """ Get the next HBM2e row command. """
 
     # Get the next non-NOP row command
@@ -407,7 +407,7 @@ class HBM2eInterface:
 
 
 
-  def next_column_command(self):
+  def next_column_command(self) -> HBM2eColumnCommand:
     """ Get the next HBM2e column command. """
 
     # Get the next non-NOP column command
