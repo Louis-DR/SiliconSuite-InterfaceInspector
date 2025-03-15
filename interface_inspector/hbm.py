@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Generator
 from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
 from .utils import change_case
@@ -226,26 +227,51 @@ class HBM2eColumnCommand_ModeRegisterSet(HBM2eColumnCommand):
 
 
 
+@dataclass
+class HBM2eInterfacePaths:
+  """ A set of HBM2e signal paths. """
+  CK_T  : str = "CK_T"
+  CK_C  : str = "CK_C"
+  CS_N  : str = "CS_N"
+  CA    : str = "CA"
+  DQS_T : str = "DQS_T"
+  DQS_C : str = "DQS_C"
+  DQ    : str = "DQ"
+  CB    : str = "CB"
+
 class HBM2eInterface:
   """ An HBM2e interface with its VCD signals. """
-
   def __init__(self,
                vcd_file  : VCDFile,
-               path      : list[str] = [],
-               prefix    : str       = "",
-               suffix    : str       = "",
-               uppercase : bool      = True):
+               signals   : HBM2eInterfacePaths = None,
+               path      : str                 = "",
+               prefix    : str                 = "",
+               suffix    : str                 = "",
+               uppercase : bool                = True):
     """ Get all the signals of the HBM2e bus. """
-    self.CK_T    = vcd_file.get_signal( path + [prefix + change_case("CK_T",   uppercase) + suffix] )
-    self.CK_C    = vcd_file.get_signal( path + [prefix + change_case("CK_C",   uppercase) + suffix] )
-    self.CKE     = vcd_file.get_signal( path + [prefix + change_case("CKE",    uppercase) + suffix] )
-    self.C       = vcd_file.get_signal( path + [prefix + change_case("C",      uppercase) + suffix] )
-    self.R       = vcd_file.get_signal( path + [prefix + change_case("R",      uppercase) + suffix] )
-    self.RDQS_T  = vcd_file.get_signal( path + [prefix + change_case("RDQS_T", uppercase) + suffix] )
-    self.RDQS_C  = vcd_file.get_signal( path + [prefix + change_case("RDQS_C", uppercase) + suffix] )
-    self.WDQS_T  = vcd_file.get_signal( path + [prefix + change_case("WDQS_T", uppercase) + suffix] )
-    self.WDQS_C  = vcd_file.get_signal( path + [prefix + change_case("WDQS_C", uppercase) + suffix] )
-    self.DQ      = vcd_file.get_signal( path + [prefix + change_case("DQ",     uppercase) + suffix] )
+    if signals is None:
+      self.paths = HBM2eInterfacePaths()
+      self.paths.CK_T   = f"{path}.{prefix}{change_case('CK_T',   uppercase)}{suffix}"
+      self.paths.CK_C   = f"{path}.{prefix}{change_case('CK_C',   uppercase)}{suffix}"
+      self.paths.CKE    = f"{path}.{prefix}{change_case('CKE',    uppercase)}{suffix}"
+      self.paths.R      = f"{path}.{prefix}{change_case('R',      uppercase)}{suffix}"
+      self.paths.C      = f"{path}.{prefix}{change_case('C',      uppercase)}{suffix}"
+      self.paths.RDQS_T = f"{path}.{prefix}{change_case('RDQS_T', uppercase)}{suffix}"
+      self.paths.RDQS_C = f"{path}.{prefix}{change_case('RDQS_C', uppercase)}{suffix}"
+      self.paths.WDQS_T = f"{path}.{prefix}{change_case('WDQS_T', uppercase)}{suffix}"
+      self.paths.WDQS_C = f"{path}.{prefix}{change_case('WDQS_C', uppercase)}{suffix}"
+      self.paths.DQ     = f"{path}.{prefix}{change_case('DQ',     uppercase)}{suffix}"
+    else: self.paths = signals
+    self.CK_T   = vcd_file.get_signal( self.paths.CK_T   .split('.') )
+    self.CK_C   = vcd_file.get_signal( self.paths.CK_C   .split('.') )
+    self.CKE    = vcd_file.get_signal( self.paths.CKE    .split('.') )
+    self.R      = vcd_file.get_signal( self.paths.R      .split('.') )
+    self.C      = vcd_file.get_signal( self.paths.C      .split('.') )
+    self.RDQS_T = vcd_file.get_signal( self.paths.RDQS_T .split('.') )
+    self.RDQS_C = vcd_file.get_signal( self.paths.RDQS_C .split('.') )
+    self.WDQS_T = vcd_file.get_signal( self.paths.WDQS_T .split('.') )
+    self.WDQS_C = vcd_file.get_signal( self.paths.WDQS_C .split('.') )
+    self.DQ     = vcd_file.get_signal( self.paths.DQ     .split('.') )
 
 
 
