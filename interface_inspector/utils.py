@@ -1,7 +1,8 @@
 from typing import Dict
 import re
+import subprocess
 
-def change_case(string:str, upper:bool):
+def change_case(string:str, upper:bool) -> str:
   if upper: return string.upper()
   else:     return string.lower()
 
@@ -37,7 +38,7 @@ class Color:
   BG_WHITE   = '\033[47m'
   BG_DEFAULT = '\033[49m'
 
-def remove_colors(string):
+def remove_colors(string:str) -> str:
   """ Remove ANSI color codes from a string. """
   return re.sub(r'\x1b\[[0-9;]*m', '', string)
 
