@@ -22,6 +22,7 @@ class HBM2eRowCommand_Error(HBM2eRowCommand):
       timestamp  = self.timestamp,
       command    = "ERROR",
       parameters = {},
+      context    = "R",
       color      = Color.BG_BLACK + Color.RED + Color.BLINK
     )
 
@@ -48,6 +49,7 @@ class HBM2eRowCommand_Activate(HBM2eRowCommand):
                     "SID": self.stack_id       .decimal(),
                     "BA":  self.bank_address   .decimal(),
                     "RA":  self.row_address    .decimal()},
+      context    = "R",
       color      = Color.BG_RED
     )
 
@@ -71,6 +73,7 @@ class HBM2eRowCommand_Precharge(HBM2eRowCommand):
       parameters = {"PS":  self.pseudo_channel .decimal(),
                     "SID": self.stack_id       .decimal(),
                     "BA":  self.bank_address   .decimal()},
+      context    = "R",
       color      = Color.BG_GREEN
     )
 
@@ -88,6 +91,7 @@ class HBM2eRowCommand_PrechargeAll(HBM2eRowCommand):
       timestamp  = self.timestamp,
       command    = "PREA",
       parameters = {"PS":  self.pseudo_channel .decimal()},
+      context    = "R",
       color      = Color.BG_GREEN
     )
 
@@ -111,6 +115,7 @@ class HBM2eRowCommand_SingleBankRefresh(HBM2eRowCommand):
       parameters = {"PS":  self.pseudo_channel .decimal(),
                     "SID": self.stack_id       .decimal(),
                     "BA":  self.bank_address   .decimal()},
+      context    = "R",
       color      = Color.BG_BLUE
     )
 
@@ -128,6 +133,7 @@ class HBM2eRowCommand_Refresh(HBM2eRowCommand):
       timestamp  = self.timestamp,
       command    = "REF",
       parameters = {"PS":  self.pseudo_channel .decimal()},
+      context    = "R",
       color      = Color.BG_BLUE
     )
 
@@ -143,6 +149,7 @@ class HBM2eRowCommand_PowerDownEntry(HBM2eRowCommand):
       timestamp  = self.timestamp,
       command    = "PDE",
       parameters = {},
+      context    = "R",
       color      = Color.BG_WHITE + Color.BLACK
     )
 
@@ -158,6 +165,7 @@ class HBM2eRowCommand_SelfRefreshEntry(HBM2eRowCommand):
       timestamp  = self.timestamp,
       command    = "SRE",
       parameters = {},
+      context    = "R",
       color      = Color.BG_WHITE + Color.BLACK
     )
 
@@ -170,6 +178,7 @@ class HBM2eRowCommand_PowerDownSelfRefreshExit(HBM2eRowCommand):
       timestamp  = self.timestamp,
       command    = "PDX/SRX",
       parameters = {},
+      context    = "R",
       color      = Color.BG_WHITE + Color.BLACK
     )
 
@@ -191,6 +200,7 @@ class HBM2eColumnCommand_Error(HBM2eColumnCommand):
       timestamp  = self.timestamp,
       command    = "ERROR",
       parameters = {},
+      context    = "C",
       color      = Color.BG_BLACK + Color.RED + Color.BLINK
     )
 
@@ -217,6 +227,7 @@ class HBM2eColumnCommand_Read(HBM2eColumnCommand):
                     "SID": self.stack_id       .decimal(),
                     "BA":  self.bank_address   .decimal(),
                     "CA":  self.column_address .decimal()},
+      context    = "C",
       color      = Color.BG_YELLOW
     )
 
@@ -243,6 +254,7 @@ class HBM2eColumnCommand_ReadAutoPrecharge(HBM2eColumnCommand):
                     "SID": self.stack_id       .decimal(),
                     "BA":  self.bank_address   .decimal(),
                     "CA":  self.column_address .decimal()},
+      context    = "C",
       color      = Color.BG_YELLOW
     )
 
@@ -269,6 +281,7 @@ class HBM2eColumnCommand_Write(HBM2eColumnCommand):
                     "SID": self.stack_id       .decimal(),
                     "BA":  self.bank_address   .decimal(),
                     "CA":  self.column_address .decimal()},
+      context    = "C",
       color      = Color.BG_CYAN
     )
 
@@ -295,6 +308,7 @@ class HBM2eColumnCommand_WriteAutoPrecharge(HBM2eColumnCommand):
                     "SID": self.stack_id       .decimal(),
                     "BA":  self.bank_address   .decimal(),
                     "CA":  self.column_address .decimal()},
+      context    = "C",
       color      = Color.BG_CYAN
     )
 
@@ -315,6 +329,7 @@ class HBM2eColumnCommand_ModeRegisterSet(HBM2eColumnCommand):
       command    = "MRS",
       parameters = {"MR": self.mode_register .decimal(),
                     "OP": self.operation     .decimal()},
+      context    = "C",
       color      = Color.BG_MAGENTA
     )
 
