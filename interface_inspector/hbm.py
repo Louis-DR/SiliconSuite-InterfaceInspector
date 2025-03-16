@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Generator
 from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
-from .utils import change_case
+from .utils import change_case, command_str, Color
 
 
 
@@ -10,14 +10,20 @@ from .utils import change_case
 
 class HBM2eRowCommand:
   """ HBM2e row command base type. """
-  pass
+  def __str__(self):
+    return self.__repr__()
 
 class HBM2eRowCommand_Error(HBM2eRowCommand):
   """ HBM2e incorrect row command. """
   def __init__(self, timestamp:int):
     self.timestamp = timestamp
   def __repr__(self):
-    return f"[ {self.timestamp} ] ERROR"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "ERROR",
+      parameters = {},
+      color      = Color.BG_BLACK + Color.RED + Color.BLINK
+    )
 
 class HBM2eRowCommand_Activate(HBM2eRowCommand):
   """ HBM2e activate row command. """
@@ -35,7 +41,15 @@ class HBM2eRowCommand_Activate(HBM2eRowCommand):
     self.bank_address   = bank_address
     self.row_address    = row_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] ACT PS{self.pseudo_channel.decimal()} SID{self.stack_id.decimal()} BA{self.bank_address.decimal()} RA{self.row_address.decimal()}"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "ACT",
+      parameters = {"PS":  self.pseudo_channel .decimal(),
+                    "SID": self.stack_id       .decimal(),
+                    "BA":  self.bank_address   .decimal(),
+                    "RA":  self.row_address    .decimal()},
+      color      = Color.BG_RED
+    )
 
 class HBM2eRowCommand_Precharge(HBM2eRowCommand):
   """ HBM2e precharge row command. """
@@ -51,7 +65,14 @@ class HBM2eRowCommand_Precharge(HBM2eRowCommand):
     self.stack_id       = stack_id
     self.bank_address   = bank_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] PRE PS{self.pseudo_channel.decimal()} SID{self.stack_id.decimal()} BA{self.bank_address.decimal()}"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "PRE",
+      parameters = {"PS":  self.pseudo_channel .decimal(),
+                    "SID": self.stack_id       .decimal(),
+                    "BA":  self.bank_address   .decimal()},
+      color      = Color.BG_GREEN
+    )
 
 class HBM2eRowCommand_PrechargeAll(HBM2eRowCommand):
   """ HBM2e precharge-all row command. """
@@ -63,7 +84,12 @@ class HBM2eRowCommand_PrechargeAll(HBM2eRowCommand):
     self.parity         = parity
     self.pseudo_channel = pseudo_channel
   def __repr__(self):
-    return f"[ {self.timestamp} ] PREA PS{self.pseudo_channel.decimal()}"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "PREA",
+      parameters = {"PS":  self.pseudo_channel .decimal()},
+      color      = Color.BG_GREEN
+    )
 
 class HBM2eRowCommand_SingleBankRefresh(HBM2eRowCommand):
   """ HBM2e single-bank refresh row command. """
@@ -79,7 +105,14 @@ class HBM2eRowCommand_SingleBankRefresh(HBM2eRowCommand):
     self.stack_id       = stack_id
     self.bank_address   = bank_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] REFSB PS{self.pseudo_channel.decimal()} SID{self.stack_id.decimal()} BA{self.bank_address.decimal()}"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "REFSB",
+      parameters = {"PS":  self.pseudo_channel .decimal(),
+                    "SID": self.stack_id       .decimal(),
+                    "BA":  self.bank_address   .decimal()},
+      color      = Color.BG_BLUE
+    )
 
 class HBM2eRowCommand_Refresh(HBM2eRowCommand):
   """ HBM2e refresh row command. """
@@ -91,7 +124,12 @@ class HBM2eRowCommand_Refresh(HBM2eRowCommand):
     self.parity         = parity
     self.pseudo_channel = pseudo_channel
   def __repr__(self):
-    return f"[ {self.timestamp} ] REF PS{self.pseudo_channel.decimal()}"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "REF",
+      parameters = {"PS":  self.pseudo_channel .decimal()},
+      color      = Color.BG_BLUE
+    )
 
 class HBM2eRowCommand_PowerDownEntry(HBM2eRowCommand):
   """ HBM2e power-down entry row command. """
@@ -101,7 +139,12 @@ class HBM2eRowCommand_PowerDownEntry(HBM2eRowCommand):
     self.timestamp = timestamp
     self.parity    = parity
   def __repr__(self):
-    return f"[ {self.timestamp} ] PDE"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "PDE",
+      parameters = {},
+      color      = Color.BG_WHITE + Color.BLACK
+    )
 
 class HBM2eRowCommand_SelfRefreshEntry(HBM2eRowCommand):
   """ HBM2e self-refresh entry row command. """
@@ -111,14 +154,24 @@ class HBM2eRowCommand_SelfRefreshEntry(HBM2eRowCommand):
     self.timestamp = timestamp
     self.parity    = parity
   def __repr__(self):
-    return f"[ {self.timestamp} ] SRE"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "SRE",
+      parameters = {},
+      color      = Color.BG_WHITE + Color.BLACK
+    )
 
 class HBM2eRowCommand_PowerDownSelfRefreshExit(HBM2eRowCommand):
   """ HBM2e power-down or self-refresh exit row command. """
   def __init__(self, timestamp:int):
     self.timestamp = timestamp
   def __repr__(self):
-    return f"[ {self.timestamp} ] PDX/SRX"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "PDX/SRX",
+      parameters = {},
+      color      = Color.BG_WHITE + Color.BLACK
+    )
 
 
 
@@ -134,7 +187,12 @@ class HBM2eColumnCommand_Error(HBM2eColumnCommand):
   def __init__(self, timestamp:int):
     self.timestamp = timestamp
   def __repr__(self):
-    return f"[ {self.timestamp} ] ERROR"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "ERROR",
+      parameters = {},
+      color      = Color.BG_BLACK + Color.RED + Color.BLINK
+    )
 
 class HBM2eColumnCommand_Read(HBM2eColumnCommand):
   """ HBM2e read column command. """
@@ -152,7 +210,15 @@ class HBM2eColumnCommand_Read(HBM2eColumnCommand):
     self.bank_address   = bank_address
     self.column_address = column_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] RD PS{self.pseudo_channel.decimal()} SID{self.stack_id.decimal()} BA{self.bank_address.decimal()} CA{self.column_address.decimal()}"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "RD",
+      parameters = {"PS":  self.pseudo_channel .decimal(),
+                    "SID": self.stack_id       .decimal(),
+                    "BA":  self.bank_address   .decimal(),
+                    "CA":  self.column_address .decimal()},
+      color      = Color.BG_YELLOW
+    )
 
 class HBM2eColumnCommand_ReadAutoPrecharge(HBM2eColumnCommand):
   """ HBM2e read with auto-precharge column command. """
@@ -170,7 +236,15 @@ class HBM2eColumnCommand_ReadAutoPrecharge(HBM2eColumnCommand):
     self.bank_address   = bank_address
     self.column_address = column_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] RDA PS{self.pseudo_channel.decimal()} SID{self.stack_id.decimal()} BA{self.bank_address.decimal()} CA{self.column_address.decimal()}"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "RDA",
+      parameters = {"PS":  self.pseudo_channel .decimal(),
+                    "SID": self.stack_id       .decimal(),
+                    "BA":  self.bank_address   .decimal(),
+                    "CA":  self.column_address .decimal()},
+      color      = Color.BG_YELLOW
+    )
 
 class HBM2eColumnCommand_Write(HBM2eColumnCommand):
   """ HBM2e write column command. """
@@ -188,7 +262,15 @@ class HBM2eColumnCommand_Write(HBM2eColumnCommand):
     self.bank_address   = bank_address
     self.column_address = column_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] WR PS{self.pseudo_channel.decimal()} SID{self.stack_id.decimal()} BA{self.bank_address.decimal()} CA{self.column_address.decimal()}"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "WR",
+      parameters = {"PS":  self.pseudo_channel .decimal(),
+                    "SID": self.stack_id       .decimal(),
+                    "BA":  self.bank_address   .decimal(),
+                    "CA":  self.column_address .decimal()},
+      color      = Color.BG_CYAN
+    )
 
 class HBM2eColumnCommand_WriteAutoPrecharge(HBM2eColumnCommand):
   """ HBM2e write with auto-precharge column command. """
@@ -206,7 +288,15 @@ class HBM2eColumnCommand_WriteAutoPrecharge(HBM2eColumnCommand):
     self.bank_address   = bank_address
     self.column_address = column_address
   def __repr__(self):
-    return f"[ {self.timestamp} ] WRA PS{self.pseudo_channel.decimal()} SID{self.stack_id.decimal()} BA{self.bank_address.decimal()} CA{self.column_address.decimal()}"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "WRA",
+      parameters = {"PS":  self.pseudo_channel .decimal(),
+                    "SID": self.stack_id       .decimal(),
+                    "BA":  self.bank_address   .decimal(),
+                    "CA":  self.column_address .decimal()},
+      color      = Color.BG_CYAN
+    )
 
 class HBM2eColumnCommand_ModeRegisterSet(HBM2eColumnCommand):
   """ HBM2e mode register set column command. """
@@ -220,7 +310,13 @@ class HBM2eColumnCommand_ModeRegisterSet(HBM2eColumnCommand):
     self.mode_register = mode_register
     self.operation     = operation
   def __repr__(self):
-    return f"[ {self.timestamp} ] MRS MR{self.mode_register.decimal()} OPb{self.operation.decimal()}"
+    return command_str(
+      timestamp  = self.timestamp,
+      command    = "MRS",
+      parameters = {"MR": self.mode_register .decimal(),
+                    "OP": self.operation     .decimal()},
+      color      = Color.BG_MAGENTA
+    )
 
 
 
