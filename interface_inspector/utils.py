@@ -1,3 +1,4 @@
+import re
 
 def change_case(string:str, upper:bool):
   if upper: return string.upper()
@@ -34,4 +35,8 @@ class Color:
   BG_CYAN    = '\033[46m'
   BG_WHITE   = '\033[47m'
   BG_DEFAULT = '\033[49m'
+
+def remove_colors(string):
+  """ Remove ANSI color codes from a string. """
+  return re.sub(r'\x1b\[[0-9;]*m', '', string)
 
