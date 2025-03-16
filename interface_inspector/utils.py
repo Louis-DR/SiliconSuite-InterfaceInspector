@@ -1,5 +1,6 @@
 from typing import Dict
 import re
+import heapq
 import subprocess
 
 def change_case(string:str, upper:bool) -> str:
@@ -93,3 +94,16 @@ def command_str(timestamp:       int               = 0,
 def merge_command_generators(*command_generators, key=lambda command: command.timestamp):
   yield from heapq.merge(*command_generators, key=key)
 
+def display_commands_with_pager(command_generator):
+  """ Display commands in a scrollable shell pager. """
+  pager = subprocess.Popen(['less', '-R', '-S'], stdin=subprocess.PIPE, text=True)
+  try:
+    for command in command_generator:
+      pager.stdin.write(str(command)+'\n')
+      pager.stdin.flush()
+    pager.stdin.close()
+    pager.wait()
+  except BrokenPipeError:
+    pass # Happens if the user quits `less` early
+  except KeyboardInterrupt:
+    pass # Handle Ctrl+C gracefully
