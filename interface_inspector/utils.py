@@ -42,17 +42,21 @@ def remove_colors(string:str) -> str:
   """ Remove ANSI color codes from a string. """
   return re.sub(r'\x1b\[[0-9;]*m', '', string)
 
-def command_str(timestamp:  int               = 0,
-                command:    str               = "NOP",
-                parameters: Dict[str,str|int] = {},
-                context:    str               = None,
-                color:      Color|str         = None
+def command_str(timestamp:       int               = 0,
+                command:         str               = "NOP",
+                parameters:      Dict[str,str|int] = {},
+                context:         str               = None,
+                color:           Color|str         = None,
+                timestamp_width: int               = 0,
+                context_width:   int               = 0,
+                command_width:   int               = 5,
+                value_width:     int               = 2,
+                line_width:      int               = 50
                 ) -> str:
   """ Display a command with colors and more. """
 
   string = ""
 
-  timestamp_width = 0
   string += Color.BLACK
   string += Color.BG_WHITE
   string += Color.BOLD
@@ -60,14 +64,12 @@ def command_str(timestamp:  int               = 0,
   string += Color.RESET
 
   if context is not None:
-    context_width = 0
     string += Color.WHITE
     string += color
     string += " "
     string += context.ljust(context_width)
     string += Color.RESET
 
-  command_width = 5
   string += Color.BOLD
   string += Color.WHITE
   string += color
@@ -76,7 +78,6 @@ def command_str(timestamp:  int               = 0,
   string += " "
   string += Color.RESET
 
-  value_width = 2
   string += Color.WHITE
   string += color
   for parameter, value in parameters.items():
@@ -84,7 +85,6 @@ def command_str(timestamp:  int               = 0,
     string += str(value).ljust(value_width)
     string += " "
 
-  line_width = 42
   string += " " * (line_width - len(remove_colors(string)))
   string += Color.RESET
 
