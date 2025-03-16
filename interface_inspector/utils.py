@@ -42,10 +42,10 @@ def remove_colors(string:str) -> str:
   """ Remove ANSI color codes from a string. """
   return re.sub(r'\x1b\[[0-9;]*m', '', string)
 
-
 def command_str(timestamp:  int               = 0,
                 command:    str               = "NOP",
                 parameters: Dict[str,str|int] = {},
+                context:    str               = None,
                 color:      Color|str         = None
                 ) -> str:
   """ Display a command with colors and more. """
@@ -58,6 +58,14 @@ def command_str(timestamp:  int               = 0,
   string += Color.BOLD
   string += f"[ {timestamp:>{timestamp_width}} ]"
   string += Color.RESET
+
+  if context is not None:
+    context_width = 0
+    string += Color.WHITE
+    string += color
+    string += " "
+    string += context.ljust(context_width)
+    string += Color.RESET
 
   command_width = 5
   string += Color.BOLD
