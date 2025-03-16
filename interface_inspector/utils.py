@@ -1,3 +1,4 @@
+from typing import Dict
 import re
 
 def change_case(string:str, upper:bool):
@@ -39,4 +40,40 @@ class Color:
 def remove_colors(string):
   """ Remove ANSI color codes from a string. """
   return re.sub(r'\x1b\[[0-9;]*m', '', string)
+
+
+def command_str(timestamp:int=0, command:str="NOP", parameters:Dict[str,(str|int)]={}, color:(Color|str)=None) -> str:
+  """ Display a command with colors and more. """
+
+  string = ""
+
+  timestamp_width = 0
+  string += Color.BLACK
+  string += Color.BG_WHITE
+  string += Color.BOLD
+  string += f"[ {timestamp:>{timestamp_width}} ]"
+  string += Color.RESET
+
+  command_wdith = 5
+  string += Color.BOLD
+  string += Color.WHITE
+  string += color
+  string += " "
+  string += command.ljust(command_wdith)
+  string += " "
+  string += Color.RESET
+
+  value_width = 2
+  string += Color.WHITE
+  string += color
+  for parameter, value in parameters.items():
+    string += parameter
+    string += str(value).ljust(value_width)
+    string += " "
+
+  line_width = 42
+  string += " " * (line_width - len(remove_colors(string)))
+  string += Color.RESET
+
+  return string
 
