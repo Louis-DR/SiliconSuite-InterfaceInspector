@@ -42,7 +42,11 @@ def remove_colors(string):
   return re.sub(r'\x1b\[[0-9;]*m', '', string)
 
 
-def command_str(timestamp:int=0, command:str="NOP", parameters:Dict[str,(str|int)]={}, color:(Color|str)=None) -> str:
+def command_str(timestamp:  int                 = 0,
+                command:    str                 = "NOP",
+                parameters: Dict[str,(str|int)] = {},
+                color:      (Color|str)         = None
+                ) -> str:
   """ Display a command with colors and more. """
 
   string = ""
