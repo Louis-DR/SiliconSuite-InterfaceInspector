@@ -58,12 +58,12 @@ def command_str(timestamp:  int                 = 0,
   string += f"[ {timestamp:>{timestamp_width}} ]"
   string += Color.RESET
 
-  command_wdith = 5
+  command_width = 5
   string += Color.BOLD
   string += Color.WHITE
   string += color
   string += " "
-  string += command.ljust(command_wdith)
+  string += command.ljust(command_width)
   string += " "
   string += Color.RESET
 
