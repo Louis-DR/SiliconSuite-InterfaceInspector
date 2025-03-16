@@ -8,6 +8,11 @@ from .utils import change_case, command_str, Color
 
 
 
+command_width = 5
+context_width = 0
+value_width   = 2
+line_width    = 43
+
 class HBM2eRowCommand:
   """ HBM2e row command base type. """
   def __str__(self):
@@ -23,7 +28,11 @@ class HBM2eRowCommand_Error(HBM2eRowCommand):
       command    = "ERROR",
       parameters = {},
       context    = "R",
-      color      = Color.BG_BLACK + Color.RED + Color.BLINK
+      color      = Color.BG_BLACK + Color.RED + Color.BLINK,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eRowCommand_Activate(HBM2eRowCommand):
@@ -50,7 +59,11 @@ class HBM2eRowCommand_Activate(HBM2eRowCommand):
                     "BA":  self.bank_address   .decimal(),
                     "RA":  self.row_address    .decimal()},
       context    = "R",
-      color      = Color.BG_RED
+      color      = Color.BG_RED,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eRowCommand_Precharge(HBM2eRowCommand):
@@ -74,7 +87,11 @@ class HBM2eRowCommand_Precharge(HBM2eRowCommand):
                     "SID": self.stack_id       .decimal(),
                     "BA":  self.bank_address   .decimal()},
       context    = "R",
-      color      = Color.BG_GREEN
+      color      = Color.BG_GREEN,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eRowCommand_PrechargeAll(HBM2eRowCommand):
@@ -92,7 +109,11 @@ class HBM2eRowCommand_PrechargeAll(HBM2eRowCommand):
       command    = "PREA",
       parameters = {"PS":  self.pseudo_channel .decimal()},
       context    = "R",
-      color      = Color.BG_GREEN
+      color      = Color.BG_GREEN,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eRowCommand_SingleBankRefresh(HBM2eRowCommand):
@@ -116,7 +137,11 @@ class HBM2eRowCommand_SingleBankRefresh(HBM2eRowCommand):
                     "SID": self.stack_id       .decimal(),
                     "BA":  self.bank_address   .decimal()},
       context    = "R",
-      color      = Color.BG_BLUE
+      color      = Color.BG_BLUE,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eRowCommand_Refresh(HBM2eRowCommand):
@@ -134,7 +159,11 @@ class HBM2eRowCommand_Refresh(HBM2eRowCommand):
       command    = "REF",
       parameters = {"PS":  self.pseudo_channel .decimal()},
       context    = "R",
-      color      = Color.BG_BLUE
+      color      = Color.BG_BLUE,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eRowCommand_PowerDownEntry(HBM2eRowCommand):
@@ -150,7 +179,11 @@ class HBM2eRowCommand_PowerDownEntry(HBM2eRowCommand):
       command    = "PDE",
       parameters = {},
       context    = "R",
-      color      = Color.BG_WHITE + Color.BLACK
+      color      = Color.BG_WHITE + Color.BLACK,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eRowCommand_SelfRefreshEntry(HBM2eRowCommand):
@@ -166,7 +199,11 @@ class HBM2eRowCommand_SelfRefreshEntry(HBM2eRowCommand):
       command    = "SRE",
       parameters = {},
       context    = "R",
-      color      = Color.BG_WHITE + Color.BLACK
+      color      = Color.BG_WHITE + Color.BLACK,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eRowCommand_PowerDownSelfRefreshExit(HBM2eRowCommand):
@@ -179,7 +216,11 @@ class HBM2eRowCommand_PowerDownSelfRefreshExit(HBM2eRowCommand):
       command    = "PDX/SRX",
       parameters = {},
       context    = "R",
-      color      = Color.BG_WHITE + Color.BLACK
+      color      = Color.BG_WHITE + Color.BLACK,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 
@@ -201,7 +242,11 @@ class HBM2eColumnCommand_Error(HBM2eColumnCommand):
       command    = "ERROR",
       parameters = {},
       context    = "C",
-      color      = Color.BG_BLACK + Color.RED + Color.BLINK
+      color      = Color.BG_BLACK + Color.RED + Color.BLINK,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eColumnCommand_Read(HBM2eColumnCommand):
@@ -228,7 +273,11 @@ class HBM2eColumnCommand_Read(HBM2eColumnCommand):
                     "BA":  self.bank_address   .decimal(),
                     "CA":  self.column_address .decimal()},
       context    = "C",
-      color      = Color.BG_YELLOW
+      color      = Color.BG_YELLOW,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eColumnCommand_ReadAutoPrecharge(HBM2eColumnCommand):
@@ -255,7 +304,11 @@ class HBM2eColumnCommand_ReadAutoPrecharge(HBM2eColumnCommand):
                     "BA":  self.bank_address   .decimal(),
                     "CA":  self.column_address .decimal()},
       context    = "C",
-      color      = Color.BG_YELLOW
+      color      = Color.BG_YELLOW,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eColumnCommand_Write(HBM2eColumnCommand):
@@ -282,7 +335,11 @@ class HBM2eColumnCommand_Write(HBM2eColumnCommand):
                     "BA":  self.bank_address   .decimal(),
                     "CA":  self.column_address .decimal()},
       context    = "C",
-      color      = Color.BG_CYAN
+      color      = Color.BG_CYAN,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eColumnCommand_WriteAutoPrecharge(HBM2eColumnCommand):
@@ -309,7 +366,11 @@ class HBM2eColumnCommand_WriteAutoPrecharge(HBM2eColumnCommand):
                     "BA":  self.bank_address   .decimal(),
                     "CA":  self.column_address .decimal()},
       context    = "C",
-      color      = Color.BG_CYAN
+      color      = Color.BG_CYAN,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class HBM2eColumnCommand_ModeRegisterSet(HBM2eColumnCommand):
@@ -330,7 +391,11 @@ class HBM2eColumnCommand_ModeRegisterSet(HBM2eColumnCommand):
       parameters = {"MR": self.mode_register .decimal(),
                     "OP": self.operation     .decimal()},
       context    = "C",
-      color      = Color.BG_MAGENTA
+      color      = Color.BG_MAGENTA,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 
