@@ -8,6 +8,11 @@ from .utils import change_case, command_str, Color
 
 
 
+command_width = 6
+context_width = 0
+value_width   = 2
+line_width    = 62
+
 class DDR5Command:
   """ DDR5 command base type. """
   def __str__(self):
@@ -26,7 +31,11 @@ class DDR5Command_Error(DDR5Command):
       command    = "ERROR",
       parameters = {},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_BLACK + Color.RED + Color.BLINK
+      color      = Color.BG_BLACK + Color.RED + Color.BLINK,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_Activate(DDR5Command):
@@ -53,7 +62,11 @@ class DDR5Command_Activate(DDR5Command):
                     "BA":  self.bank_address       .decimal(),
                     "R":   self.row_address        .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_RED
+      color      = Color.BG_RED,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_WritePattern(DDR5Command):
@@ -80,7 +93,11 @@ class DDR5Command_WritePattern(DDR5Command):
                     "BA":  self.bank_address       .decimal(),
                     "C":   self.column_address     .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_CYAN
+      color      = Color.BG_CYAN,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_WritePatternAutoPrecharge(DDR5Command):
@@ -107,7 +124,11 @@ class DDR5Command_WritePatternAutoPrecharge(DDR5Command):
                     "BA":  self.bank_address       .decimal(),
                     "C":   self.column_address     .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_CYAN
+      color      = Color.BG_CYAN,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_ModeRegisterWrite(DDR5Command):
@@ -131,7 +152,11 @@ class DDR5Command_ModeRegisterWrite(DDR5Command):
                     "OP":  self.operation     .decimal(),
                     "CW":  self.control_word  .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_MAGENTA
+      color      = Color.BG_MAGENTA,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_ModeRegisterRead(DDR5Command):
@@ -152,7 +177,11 @@ class DDR5Command_ModeRegisterRead(DDR5Command):
       parameters = {"MRA": self.mode_register .decimal(),
                     "CW":  self.control_word  .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_MAGENTA
+      color      = Color.BG_MAGENTA,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_Write(DDR5Command):
@@ -185,7 +214,11 @@ class DDR5Command_Write(DDR5Command):
                     "BL":  self.burst_length       .decimal(),
                     "WRP": self.partial_write      .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_CYAN
+      color      = Color.BG_CYAN,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_WriteAutoPrecharge(DDR5Command):
@@ -218,7 +251,11 @@ class DDR5Command_WriteAutoPrecharge(DDR5Command):
                     "BL":  self.burst_length       .decimal(),
                     "WRP": self.partial_write      .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_CYAN
+      color      = Color.BG_CYAN,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_Read(DDR5Command):
@@ -248,7 +285,11 @@ class DDR5Command_Read(DDR5Command):
                     "C":   self.column_address     .decimal(),
                     "BL":  self.burst_length       .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_YELLOW
+      color      = Color.BG_YELLOW,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_ReadAutoPrecharge(DDR5Command):
@@ -278,7 +319,11 @@ class DDR5Command_ReadAutoPrecharge(DDR5Command):
                     "C":   self.column_address     .decimal(),
                     "BL":  self.burst_length       .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_YELLOW
+      color      = Color.BG_YELLOW,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_VrefCA(DDR5Command):
@@ -296,7 +341,11 @@ class DDR5Command_VrefCA(DDR5Command):
       command    = "VrefCA",
       parameters = {"OP": self.operation.decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_MAGENTA
+      color      = Color.BG_MAGENTA,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_VrefCS(DDR5Command):
@@ -314,7 +363,11 @@ class DDR5Command_VrefCS(DDR5Command):
       command    = "VrefCS",
       parameters = {"OP": self.operation.decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_MAGENTA
+      color      = Color.BG_MAGENTA,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_RefreshAll(DDR5Command):
@@ -335,7 +388,11 @@ class DDR5Command_RefreshAll(DDR5Command):
       parameters = {"CID": self.chip_id               .decimal(),
                     "RIR": self.refresh_interval_rate .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_BLUE
+      color      = Color.BG_BLUE,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_RefreshManagementAll(DDR5Command):
@@ -353,7 +410,11 @@ class DDR5Command_RefreshManagementAll(DDR5Command):
       command    = "RFMab",
       parameters = {"CID": self.chip_id.decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_BLUE
+      color      = Color.BG_BLUE,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_RefreshSameBank(DDR5Command):
@@ -377,7 +438,11 @@ class DDR5Command_RefreshSameBank(DDR5Command):
                     "BA":  self.bank_address          .decimal(),
                     "RIR": self.refresh_interval_rate .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_BLUE
+      color      = Color.BG_BLUE,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_RefreshManagementSameBank(DDR5Command):
@@ -398,7 +463,11 @@ class DDR5Command_RefreshManagementSameBank(DDR5Command):
       parameters = {"CID": self.chip_id               .decimal(),
                     "BA":  self.bank_address          .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_BLUE
+      color      = Color.BG_BLUE,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_PrechargeAll(DDR5Command):
@@ -416,7 +485,11 @@ class DDR5Command_PrechargeAll(DDR5Command):
       command    = "PREab",
       parameters = {"CID": self.chip_id.decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_GREEN
+      color      = Color.BG_GREEN,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_PrechargeSameBank(DDR5Command):
@@ -437,7 +510,11 @@ class DDR5Command_PrechargeSameBank(DDR5Command):
       parameters = {"CID": self.chip_id      .decimal(),
                     "BA":  self.bank_address .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_GREEN
+      color      = Color.BG_GREEN,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_Precharge(DDR5Command):
@@ -461,7 +538,11 @@ class DDR5Command_Precharge(DDR5Command):
                     "BG":  self.bank_group_address .decimal(),
                     "BA":  self.bank_address       .decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_GREEN
+      color      = Color.BG_GREEN,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_SelfRefreshEntry(DDR5Command):
@@ -477,7 +558,11 @@ class DDR5Command_SelfRefreshEntry(DDR5Command):
       command    = "SRE",
       parameters = {},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_WHITE + Color.BLACK
+      color      = Color.BG_WHITE + Color.BLACK,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_SelfRefreshEntryWithFrequencyChange(DDR5Command):
@@ -493,7 +578,11 @@ class DDR5Command_SelfRefreshEntryWithFrequencyChange(DDR5Command):
       command    = "SREF",
       parameters = {},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_WHITE + Color.BLACK
+      color      = Color.BG_WHITE + Color.BLACK,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_PowerDownEntry(DDR5Command):
@@ -511,7 +600,11 @@ class DDR5Command_PowerDownEntry(DDR5Command):
       command    = "PDE",
       parameters = {"ODT": self.on_die_termination.decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_WHITE + Color.BLACK
+      color      = Color.BG_WHITE + Color.BLACK,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 class DDR5Command_MultiPurposeCommand(DDR5Command):
@@ -529,7 +622,11 @@ class DDR5Command_MultiPurposeCommand(DDR5Command):
       command    = "MPC",
       parameters = {"OP": self.operation.decimal()},
       context    = f"CS{self.chip_select.decimal()}",
-      color      = Color.BG_MAGENTA
+      color      = Color.BG_MAGENTA,
+      command_width = command_width,
+      context_width = context_width,
+      value_width   = value_width,
+      line_width    = line_width
     )
 
 
