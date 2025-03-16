@@ -8,10 +8,19 @@ from .utils import change_case, command_str, Color
 
 
 
-command_width = 6
+command_width = 5
 context_width = 0
 value_width   = 2
-line_width    = 62
+line_width    = 44
+
+enable_cid    = False
+enable_extras = False
+
+if enable_cid:
+  line_width += 5
+
+if enable_extras:
+  line_width += 11
 
 class DDR5Command:
   """ DDR5 command base type. """
@@ -56,10 +65,10 @@ class DDR5Command_Activate(DDR5Command):
     self.row_address        = row_address
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id            .decimal()
-    parameters["BG"]  = self.bank_group_address .decimal()
-    parameters["BA"]  = self.bank_address       .decimal()
-    parameters["R"]   = self.row_address        .decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
+    parameters["BG"] = self.bank_group_address .decimal()
+    parameters["BA"] = self.bank_address       .decimal()
+    parameters["R"]  = self.row_address        .decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "ACT",
@@ -89,10 +98,10 @@ class DDR5Command_WritePattern(DDR5Command):
     self.column_address     = column_address
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id            .decimal()
-    parameters["BG"]  = self.bank_group_address .decimal()
-    parameters["BA"]  = self.bank_address       .decimal()
-    parameters["C"]   = self.column_address     .decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
+    parameters["BG"] = self.bank_group_address .decimal()
+    parameters["BA"] = self.bank_address       .decimal()
+    parameters["C"]  = self.column_address     .decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "WRP",
@@ -122,10 +131,10 @@ class DDR5Command_WritePatternAutoPrecharge(DDR5Command):
     self.column_address     = column_address
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id            .decimal()
-    parameters["BG"]  = self.bank_group_address .decimal()
-    parameters["BA"]  = self.bank_address       .decimal()
-    parameters["C"]   = self.column_address     .decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
+    parameters["BG"] = self.bank_group_address .decimal()
+    parameters["BA"] = self.bank_address       .decimal()
+    parameters["C"]  = self.column_address     .decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "WRPA",
@@ -216,12 +225,13 @@ class DDR5Command_Write(DDR5Command):
     self.partial_write      = partial_write
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id            .decimal()
-    parameters["BG"]  = self.bank_group_address .decimal()
-    parameters["BA"]  = self.bank_address       .decimal()
-    parameters["C"]   = self.column_address     .decimal()
-    parameters["BL"]  = self.burst_length       .decimal()
-    parameters["WRP"] = self.partial_write      .decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
+    parameters["BG"] = self.bank_group_address .decimal()
+    parameters["BA"] = self.bank_address       .decimal()
+    parameters["C"]  = self.column_address     .decimal()
+    if enable_extras:
+      parameters["BL"]  = self.burst_length    .decimal()
+      parameters["WRP"] = self.partial_write   .decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "WR",
@@ -255,12 +265,13 @@ class DDR5Command_WriteAutoPrecharge(DDR5Command):
     self.partial_write      = partial_write
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id            .decimal()
-    parameters["BG"]  = self.bank_group_address .decimal()
-    parameters["BA"]  = self.bank_address       .decimal()
-    parameters["C"]   = self.column_address     .decimal()
-    parameters["BL"]  = self.burst_length       .decimal()
-    parameters["WRP"] = self.partial_write      .decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
+    parameters["BG"] = self.bank_group_address .decimal()
+    parameters["BA"] = self.bank_address       .decimal()
+    parameters["C"]  = self.column_address     .decimal()
+    if enable_extras:
+      parameters["BL"]  = self.burst_length    .decimal()
+      parameters["WRP"] = self.partial_write   .decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "WRA",
@@ -292,11 +303,12 @@ class DDR5Command_Read(DDR5Command):
     self.burst_length       = burst_length
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id            .decimal()
-    parameters["BG"]  = self.bank_group_address .decimal()
-    parameters["BA"]  = self.bank_address       .decimal()
-    parameters["C"]   = self.column_address     .decimal()
-    parameters["BL"]  = self.burst_length       .decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
+    parameters["BG"] = self.bank_group_address .decimal()
+    parameters["BA"] = self.bank_address       .decimal()
+    parameters["C"]  = self.column_address     .decimal()
+    if enable_extras:
+      parameters["BL"] = self.burst_length     .decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "RD",
@@ -328,11 +340,12 @@ class DDR5Command_ReadAutoPrecharge(DDR5Command):
     self.burst_length       = burst_length
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id            .decimal()
-    parameters["BG"]  = self.bank_group_address .decimal()
-    parameters["BA"]  = self.bank_address       .decimal()
-    parameters["C"]   = self.column_address     .decimal()
-    parameters["BL"]  = self.burst_length       .decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
+    parameters["BG"] = self.bank_group_address .decimal()
+    parameters["BA"] = self.bank_address       .decimal()
+    parameters["C"]  = self.column_address     .decimal()
+    if enable_extras:
+      parameters["BL"] = self.burst_length     .decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "RDA",
@@ -406,7 +419,7 @@ class DDR5Command_RefreshAll(DDR5Command):
     self.refresh_interval_rate = refresh_interval_rate
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id               .decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
     parameters["RIR"] = self.refresh_interval_rate .decimal()
     return command_str(
       timestamp  = self.timestamp,
@@ -431,7 +444,7 @@ class DDR5Command_RefreshManagementAll(DDR5Command):
     self.chip_id     = chip_id
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id.decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "RFMab",
@@ -459,9 +472,10 @@ class DDR5Command_RefreshSameBank(DDR5Command):
     self.refresh_interval_rate = refresh_interval_rate
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id               .decimal()
-    parameters["BA"]  = self.bank_address          .decimal()
-    parameters["RIR"] = self.refresh_interval_rate .decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
+    parameters["BA"] = self.bank_address.decimal()
+    if enable_extras:
+      parameters["RIR"] = self.refresh_interval_rate.decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "REFsb",
@@ -487,8 +501,8 @@ class DDR5Command_RefreshManagementSameBank(DDR5Command):
     self.bank_address = bank_address
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id               .decimal()
-    parameters["BA"]  = self.bank_address          .decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
+    parameters["BA"] = self.bank_address.decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "RFMsb",
@@ -512,7 +526,7 @@ class DDR5Command_PrechargeAll(DDR5Command):
     self.chip_id     = chip_id
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id.decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "PREab",
@@ -538,8 +552,8 @@ class DDR5Command_PrechargeSameBank(DDR5Command):
     self.bank_address = bank_address
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id      .decimal()
-    parameters["BA"]  = self.bank_address .decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
+    parameters["BA"] = self.bank_address.decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "PREab",
@@ -567,9 +581,9 @@ class DDR5Command_Precharge(DDR5Command):
     self.bank_address       = bank_address
   def __repr__(self):
     parameters = {}
-    parameters["CID"] = self.chip_id            .decimal()
-    parameters["BG"]  = self.bank_group_address .decimal()
-    parameters["BA"]  = self.bank_address       .decimal()
+    if enable_cid: parameters["CID"] = self.chip_id.decimal()
+    parameters["BG"] = self.bank_group_address .decimal()
+    parameters["BA"] = self.bank_address       .decimal()
     return command_str(
       timestamp  = self.timestamp,
       command    = "PREpb",
