@@ -90,3 +90,6 @@ def command_str(timestamp:       int               = 0,
 
   return string
 
+def merge_command_generators(*command_generators, key=lambda command: command.timestamp):
+  yield from heapq.merge(*command_generators, key=key)
+
