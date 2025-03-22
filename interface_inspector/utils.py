@@ -94,6 +94,11 @@ def command_str(timestamp:       int               = 0,
 def merge_command_generators(*command_generators, key=lambda command: command.timestamp):
   yield from heapq.merge(*command_generators, key=key)
 
+def command_and_annotator_generator(command_generator, annotator):
+  for command in command_generator:
+    annotator.update(command)
+    yield f"{repr(command)} {repr(annotator)}"
+
 def display_commands_with_pager(command_generator):
   """ Display commands in a scrollable shell pager. """
   pager = subprocess.Popen(['less', '-R', '-S', '-#', '8'], stdin=subprocess.PIPE, text=True)
