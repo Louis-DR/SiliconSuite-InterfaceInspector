@@ -96,7 +96,7 @@ def merge_command_generators(*command_generators, key=lambda command: command.ti
 
 def display_commands_with_pager(command_generator):
   """ Display commands in a scrollable shell pager. """
-  pager = subprocess.Popen(['less', '-R', '-S'], stdin=subprocess.PIPE, text=True)
+  pager = subprocess.Popen(['less', '-R', '-S', '-#', '8'], stdin=subprocess.PIPE, text=True)
   try:
     for command in command_generator:
       pager.stdin.write(str(command)+'\n')
