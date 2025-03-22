@@ -1,7 +1,9 @@
-from typing import Dict
+from typing import Dict, Generator, Callable
 import re
 import heapq
 import subprocess
+from .command import Command
+from .annotator import Annotator
 
 def change_case(string:str, upper:bool) -> str:
   if upper: return string.upper()
@@ -91,15 +93,15 @@ def command_str(timestamp:       int               = 0,
 
   return string
 
-def merge_command_generators(*command_generators, key=lambda command: command.timestamp):
+def merge_command_generators(*command_generators : Generator[Command, None, None], key : Callable[[Command], int] = lambda command: command.timestamp) -> Generator[Command, None, None]:
   yield from heapq.merge(*command_generators, key=key)
 
-def command_and_annotator_generator(command_generator, annotator):
+def command_and_annotator_generator(command_generator:Generator[Command, None, None], annotator:Annotator) -> Generator[str, None, None]:
   for command in command_generator:
     annotator.update(command)
     yield f"{repr(command)} {repr(annotator)}"
 
-def display_commands_with_pager(command_generator):
+def display_commands_with_pager(command_generator:Generator[Command|str, None, None]) -> None:
   """ Display commands in a scrollable shell pager. """
   pager = subprocess.Popen(['less', '-R', '-S', '-#', '8'], stdin=subprocess.PIPE, text=True)
   try:

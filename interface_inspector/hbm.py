@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Generator
 from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
 from .utils import change_case, command_str, Color
-
+from .annotator import Annotator
 
 
 
@@ -719,7 +719,7 @@ symbol_bank_write_precharge = Color.CYAN   + '█' + Color.RESET
 symbol_bank_refresh         = Color.BLUE   + '█' + Color.RESET
 symbol_bank_idle            =                '┃'
 
-class HBM2eBankAnnotator:
+class HBM2eBankAnnotator(Annotator):
   """ Display the status and activity of all banks. """
 
   def __init__(self):
