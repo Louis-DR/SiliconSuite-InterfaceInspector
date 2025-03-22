@@ -696,3 +696,98 @@ class HBM2eInterface:
       if next_column_command:
         yield next_column_command
       else: return
+
+
+
+
+
+
+bank_address_width = 5
+stack_id_width     = 1
+
+banks_per_stack          = 2**bank_address_width
+banks_per_pseudo_channel = 2**stack_id_width * banks_per_stack
+banks_per_memory         = 2 * banks_per_pseudo_channel
+
+symbol_bank_inactive        = Color.FAINT  + '│' + Color.RESET
+symbol_bank_activate        = Color.RED    + '█' + Color.RESET
+symbol_bank_precharge       = Color.GREEN  + '█' + Color.RESET
+symbol_bank_read            = Color.YELLOW + '█' + Color.RESET
+symbol_bank_read_precharge  = Color.YELLOW + '█' + Color.RESET
+symbol_bank_write           = Color.CYAN   + '█' + Color.RESET
+symbol_bank_write_precharge = Color.CYAN   + '█' + Color.RESET
+symbol_bank_refresh         = Color.BLUE   + '█' + Color.RESET
+symbol_bank_idle            =                '┃'
+
+class HBM2eBankAnnotator:
+  """ Display the status and activity of all banks. """
+
+  def __init__(self):
+    self.banks_active      = [False] * banks_per_memory
+    self.annotation_string = " "     * banks_per_memory
+
+  def update(self, command:HBM2eCommand):
+    annotation_list = []
+    for bank_index in range(banks_per_memory):
+      annotation_list.append(symbol_bank_idle if self.banks_active[bank_index] else symbol_bank_inactive)
+
+    if type(command) in [HBM2eRowCommand_PrechargeAll,
+                         HBM2eRowCommand_Refresh]:
+      pseudo_channel = command.pseudo_channel.decimal()
+
+    elif type(command) in [HBM2eRowCommand_Activate,
+                           HBM2eRowCommand_Precharge,
+                           HBM2eRowCommand_SingleBankRefresh,
+                           HBM2eRowCommand_Refresh,
+                           HBM2eColumnCommand_Read,
+                           HBM2eColumnCommand_ReadAutoPrecharge,
+                           HBM2eColumnCommand_Write,
+                           HBM2eColumnCommand_WriteAutoPrecharge]:
+      pseudo_channel = command.pseudo_channel.decimal()
+      stack_id       = command.stack_id.decimal()
+      bank_address   = command.bank_address.decimal()
+      bank_index     = pseudo_channel * banks_per_pseudo_channel  +  stack_id * banks_per_stack  +  bank_address
+
+    match command:
+
+      case HBM2eRowCommand_Activate():
+        annotation_list[bank_index] = symbol_bank_activate
+        self.banks_active[bank_index] = True
+
+      case HBM2eRowCommand_Precharge():
+        annotation_list[bank_index] = symbol_bank_precharge
+        self.banks_active[bank_index] = False
+
+      case HBM2eRowCommand_PrechargeAll():
+        annotation_list[  pseudo_channel    * banks_per_pseudo_channel
+                       : (pseudo_channel+1) * banks_per_pseudo_channel] = [symbol_bank_refresh] * symbol_bank_precharge
+        self.banks_active = [False] * banks_per_memory
+
+      case HBM2eRowCommand_SingleBankRefresh():
+        annotation_list[bank_index] = symbol_bank_refresh
+
+      case HBM2eRowCommand_Refresh():
+        annotation_list[  pseudo_channel    * banks_per_pseudo_channel
+                       : (pseudo_channel+1) * banks_per_pseudo_channel] = [symbol_bank_refresh] * banks_per_pseudo_channel
+
+      case HBM2eColumnCommand_Read():
+        annotation_list[bank_index] = symbol_bank_read
+
+      case HBM2eColumnCommand_ReadAutoPrecharge():
+        annotation_list[bank_index] = symbol_bank_read
+        self.banks_active[bank_index] = False
+
+      case HBM2eColumnCommand_Write():
+        annotation_list[bank_index] = symbol_bank_write
+
+      case HBM2eColumnCommand_WriteAutoPrecharge():
+        annotation_list[bank_index] = symbol_bank_write
+        self.banks_active[bank_index] = False
+
+      case _:
+        pass
+
+    self.annotation_string = "".join(annotation_list)
+
+  def __repr__(self):
+    return self.annotation_string
