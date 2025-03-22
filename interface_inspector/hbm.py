@@ -13,10 +13,11 @@ context_width = 0
 value_width   = 2
 line_width    = 43
 
-class HBM2eRowCommand:
+class HBM2eCommand:
+  """ HBM2e command base type. """
+
+class HBM2eRowCommand(HBM2eCommand):
   """ HBM2e row command base type. """
-  def __str__(self):
-    return self.__repr__()
 
 class HBM2eRowCommand_Error(HBM2eRowCommand):
   """ HBM2e incorrect row command. """
@@ -107,7 +108,7 @@ class HBM2eRowCommand_PrechargeAll(HBM2eRowCommand):
     return command_str(
       timestamp  = self.timestamp,
       command    = "PREA",
-      parameters = {"PS":  self.pseudo_channel .decimal()},
+      parameters = {"PS": self.pseudo_channel.decimal()},
       context    = "R",
       color      = Color.BG_GREEN,
       command_width = command_width,
@@ -157,7 +158,7 @@ class HBM2eRowCommand_Refresh(HBM2eRowCommand):
     return command_str(
       timestamp  = self.timestamp,
       command    = "REF",
-      parameters = {"PS":  self.pseudo_channel .decimal()},
+      parameters = {"PS": self.pseudo_channel.decimal()},
       context    = "R",
       color      = Color.BG_BLUE,
       command_width = command_width,
@@ -228,7 +229,7 @@ class HBM2eRowCommand_PowerDownSelfRefreshExit(HBM2eRowCommand):
 
 
 
-class HBM2eColumnCommand:
+class HBM2eColumnCommand(HBM2eCommand):
   """ HBM2e column command base type. """
   pass
 
