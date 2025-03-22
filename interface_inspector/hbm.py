@@ -702,12 +702,17 @@ class HBM2eInterface:
 
 
 
-bank_address_width = 5
-stack_id_width     = 1
+column_address_width = 5 # Only CA1 to CA5 in HBM2e mode
+row_address_width    = 15
+bank_address_width   = 5
+stack_id_width       = 1
 
-banks_per_stack          = 2**bank_address_width
-banks_per_pseudo_channel = 2**stack_id_width * banks_per_stack
-banks_per_memory         = 2 * banks_per_pseudo_channel
+columns_per_row            = 2**column_address_width
+rows_per_bank              = 2**row_address_width
+banks_per_stack            = 2**bank_address_width
+banks_per_pseudo_channel   = 2**stack_id_width * banks_per_stack
+pseudo_channel_per_channel = 2
+banks_per_channel          = pseudo_channel_per_channel * banks_per_pseudo_channel
 
 symbol_bank_inactive        = Color.FAINT  + '│' + Color.RESET
 symbol_bank_activate        = Color.RED    + '█' + Color.RESET
@@ -723,12 +728,12 @@ class HBM2eBankAnnotator(Annotator):
   """ Display the status and activity of all banks. """
 
   def __init__(self):
-    self.banks_active      = [False] * banks_per_memory
-    self.annotation_string = " "     * banks_per_memory
+    self.banks_active      = [False] * banks_per_channel
+    self.annotation_string = " "     * banks_per_channel
 
   def update(self, command:HBM2eCommand):
     annotation_list = []
-    for bank_index in range(banks_per_memory):
+    for bank_index in range(banks_per_channel):
       annotation_list.append(symbol_bank_idle if self.banks_active[bank_index] else symbol_bank_inactive)
 
     if type(command) in [HBM2eRowCommand_PrechargeAll,
@@ -761,7 +766,7 @@ class HBM2eBankAnnotator(Annotator):
       case HBM2eRowCommand_PrechargeAll():
         annotation_list[  pseudo_channel    * banks_per_pseudo_channel
                        : (pseudo_channel+1) * banks_per_pseudo_channel] = [symbol_bank_refresh] * symbol_bank_precharge
-        self.banks_active = [False] * banks_per_memory
+        self.banks_active = [False] * banks_per_channel
 
       case HBM2eRowCommand_SingleBankRefresh():
         annotation_list[bank_index] = symbol_bank_refresh
