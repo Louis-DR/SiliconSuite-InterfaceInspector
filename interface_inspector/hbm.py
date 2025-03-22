@@ -791,3 +791,41 @@ class HBM2eBankAnnotator(Annotator):
 
   def __repr__(self):
     return self.annotation_string
+
+
+
+
+
+
+symbol_column_inactive        = Color.FAINT  + '-' + Color.RESET
+symbol_column_read            = Color.YELLOW + '█' + Color.RESET
+symbol_column_write           = Color.CYAN   + '█' + Color.RESET
+
+class HBM2ePageAnnotator(Annotator):
+  """ Display the activity of the page accessed. """
+
+  def __init__(self):
+    self.annotation_string = " " * columns_per_row
+
+  def update(self, command:HBM2eCommand):
+    if type(command) in [HBM2eColumnCommand_Read,
+                         HBM2eColumnCommand_ReadAutoPrecharge,
+                         HBM2eColumnCommand_Write,
+                         HBM2eColumnCommand_WriteAutoPrecharge]:
+      annotation_list = [symbol_column_inactive] * columns_per_row
+
+      column_index = command.column_address.decimal() // 2 # HBM2e no legacy
+
+      if type(command) in [HBM2eColumnCommand_Read,
+                           HBM2eColumnCommand_ReadAutoPrecharge]:
+        annotation_list[column_index] = symbol_column_read
+      else:
+        annotation_list[column_index] = symbol_column_write
+
+      self.annotation_string = "".join(annotation_list)
+
+    else:
+      self.annotation_string = " " * columns_per_row
+
+  def __repr__(self):
+    return self.annotation_string
