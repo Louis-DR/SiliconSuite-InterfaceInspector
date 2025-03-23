@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import Generator
 from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
-from .utils import change_case, command_str, Color
+from .utils import change_case, command_str, Color, remove_colors
 from .annotator import Annotator
 
 
@@ -743,7 +744,6 @@ class HBM2eBankAnnotator(Annotator):
     elif type(command) in [HBM2eRowCommand_Activate,
                            HBM2eRowCommand_Precharge,
                            HBM2eRowCommand_SingleBankRefresh,
-                           HBM2eRowCommand_Refresh,
                            HBM2eColumnCommand_Read,
                            HBM2eColumnCommand_ReadAutoPrecharge,
                            HBM2eColumnCommand_Write,
@@ -802,35 +802,148 @@ class HBM2eBankAnnotator(Annotator):
 
 
 
-symbol_column_inactive        = Color.FAINT  + '-' + Color.RESET
-symbol_column_read            = Color.YELLOW + '█' + Color.RESET
-symbol_column_write           = Color.CYAN   + '█' + Color.RESET
+symbol_column_inactive        = Color.RED + Color.BLINK + '╳' + Color.RESET
+symbol_column_activate        = Color.RED    + '━' + Color.RESET
+symbol_column_precharge_all   = Color.GREEN  + '━' + Color.RESET
+symbol_column_unused          = Color.FAINT  + '╌' + Color.RESET
+symbol_column_do_read         = Color.YELLOW + '█' + Color.RESET
+symbol_column_do_write        = Color.CYAN   + '█' + Color.RESET
+symbol_column_is_read         = Color.WHITE  + '╍' + Color.RESET
+symbol_column_is_written      = Color.WHITE  + '━' + Color.RESET
+column_precharge_color        = Color.GREEN
+
+class HBM2ePageStatus(Enum):
+  INACTIVE  = 0
+  UNUSED    = 1
+  READ      = 2
+  WRITTEN   = 3
 
 class HBM2ePageAnnotator(Annotator):
-  """ Display the activity of the page accessed. """
+  """ Display the status and activity of the page accessed. """
 
   def __init__(self):
     self.annotation_string = " " * columns_per_row
+    self.pages_status = [[HBM2ePageStatus.UNUSED] * columns_per_row for bank in range(banks_per_channel)]
 
   def update(self, command:HBM2eCommand):
-    if type(command) in [HBM2eColumnCommand_Read,
-                         HBM2eColumnCommand_ReadAutoPrecharge,
-                         HBM2eColumnCommand_Write,
-                         HBM2eColumnCommand_WriteAutoPrecharge]:
-      annotation_list = [symbol_column_inactive] * columns_per_row
 
-      column_index = command.column_address.decimal() // 2 # HBM2e no legacy
+    pseudo_channel = None
+    def fetch_pseudo_channel():
+      nonlocal pseudo_channel
+      pseudo_channel = command.pseudo_channel.decimal()
 
-      if type(command) in [HBM2eColumnCommand_Read,
-                           HBM2eColumnCommand_ReadAutoPrecharge]:
-        annotation_list[column_index] = symbol_column_read
-      else:
-        annotation_list[column_index] = symbol_column_write
+    stack_id     = None
+    bank_address = None
+    bank_index   = None
+    def fetch_bank_index():
+      nonlocal stack_id
+      nonlocal bank_address
+      nonlocal bank_index
+      stack_id     = command.stack_id.decimal()
+      bank_address = command.bank_address.decimal()
+      bank_index   = pseudo_channel * banks_per_pseudo_channel  +  stack_id * banks_per_stack  +  bank_address
 
-      self.annotation_string = "".join(annotation_list)
+    column_address = None
+    column_index   = None
+    def fetch_column_index():
+      nonlocal column_address
+      nonlocal column_index
+      column_address = command.column_address.decimal()
+      column_index   = column_address // 2
 
-    else:
-      self.annotation_string = " " * columns_per_row
+    annotation_list = [" "] * columns_per_row
+    def load_page_status():
+      nonlocal annotation_list
+      annotation_list = []
+      page_status = self.pages_status[bank_index]
+      for column_index in range(columns_per_row):
+        match page_status[column_index]:
+          case HBM2ePageStatus.INACTIVE:
+            annotation_list.append(symbol_column_inactive)
+          case HBM2ePageStatus.UNUSED:
+            annotation_list.append(symbol_column_unused)
+          case HBM2ePageStatus.READ:
+            annotation_list.append(symbol_column_is_read)
+          case HBM2ePageStatus.WRITTEN:
+            annotation_list.append(symbol_column_is_written)
+
+    def activate_page_status():
+      nonlocal bank_index
+      self.pages_status[bank_index] = [HBM2ePageStatus.UNUSED] * columns_per_row
+
+    def clear_page_status():
+      nonlocal bank_index
+      self.pages_status[bank_index] = [HBM2ePageStatus.UNUSED] * columns_per_row
+
+    def clear_all_page_status():
+      self.pages_status = [[HBM2ePageStatus.UNUSED] * columns_per_row for bank in range(banks_per_channel)]
+
+    def apply_precharge_format():
+      # Iterate over the symbols of all columns
+      for column_index in range(columns_per_row):
+        # Remove the previous color
+        annotation_list[column_index] = remove_colors(annotation_list[column_index])
+        # Add the color of precharge
+        annotation_list[column_index] = column_precharge_color + annotation_list[column_index] + Color.RESET
+
+    match command:
+
+      case HBM2eRowCommand_Activate():
+        fetch_pseudo_channel()
+        fetch_bank_index()
+        annotation_list = [symbol_column_activate] * columns_per_row
+        activate_page_status()
+
+      case HBM2eRowCommand_Precharge():
+        fetch_pseudo_channel()
+        fetch_bank_index()
+        load_page_status()
+        apply_precharge_format()
+        clear_page_status()
+
+      case HBM2eRowCommand_PrechargeAll():
+        fetch_pseudo_channel()
+        annotation_list = [symbol_column_precharge_all] * columns_per_row
+        clear_all_page_status()
+
+      case HBM2eColumnCommand_Read():
+        fetch_pseudo_channel()
+        fetch_bank_index()
+        load_page_status()
+        fetch_column_index()
+        annotation_list[column_index] = symbol_column_do_read
+        self.pages_status[bank_index][column_index] = HBM2ePageStatus.READ
+
+      case HBM2eColumnCommand_ReadAutoPrecharge():
+        fetch_pseudo_channel()
+        fetch_bank_index()
+        load_page_status()
+        apply_precharge_format()
+        fetch_column_index()
+        annotation_list[column_index] = symbol_column_do_read
+        clear_page_status()
+
+      case HBM2eColumnCommand_Write():
+        fetch_pseudo_channel()
+        fetch_bank_index()
+        load_page_status()
+        fetch_column_index()
+        annotation_list[column_index] = symbol_column_do_write
+        self.pages_status[bank_index][column_index] = HBM2ePageStatus.WRITTEN
+
+      case HBM2eColumnCommand_WriteAutoPrecharge():
+        fetch_pseudo_channel()
+        fetch_bank_index()
+        load_page_status()
+        apply_precharge_format()
+        fetch_column_index()
+        annotation_list[column_index] = symbol_column_do_write
+        clear_page_status()
+
+      case _:
+        pass
+
+    self.annotation_string = "".join(annotation_list)
 
   def __repr__(self):
     return self.annotation_string
