@@ -3,7 +3,10 @@ from enum import Enum
 from typing import Generator
 from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
 from .utils import change_case, command_str, Color, remove_colors
+from .command import Command
+from .interface import Interface
 from .annotator import Annotator
+
 
 
 
@@ -14,7 +17,7 @@ context_width = 0
 value_width   = 2
 line_width    = 43
 
-class HBM2eCommand:
+class HBM2eCommand(Command):
   """ HBM2e command base type. """
 
 class HBM2eRowCommand(HBM2eCommand):
@@ -417,7 +420,7 @@ class HBM2eInterfacePaths:
   DQ    : str = "DQ"
   CB    : str = "CB"
 
-class HBM2eInterface:
+class HBM2eInterface(Interface):
   """ An HBM2e interface with its VCD signals. """
   def __init__(self,
                vcd_file  : VCDFile,

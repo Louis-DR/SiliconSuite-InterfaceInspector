@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import Generator
 from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
 from .utils import change_case, command_str, Color
+from .command import Command
+from .interface import Interface
 
 
 
@@ -22,7 +24,7 @@ if enable_cid:
 if enable_extras:
   line_width += 11
 
-class DDR5Command:
+class DDR5Command(Command):
   """ DDR5 command base type. """
   def __str__(self):
     return self.__repr__()
@@ -703,7 +705,7 @@ class DDR5InterfacePaths:
   DQ    : str = "DQ"
   CB    : str = "CB"
 
-class DDR5Interface:
+class DDR5Interface(Interface):
   """ A DDR5 interface with its VCD signals. """
   def __init__(self,
                vcd_file  : VCDFile,
