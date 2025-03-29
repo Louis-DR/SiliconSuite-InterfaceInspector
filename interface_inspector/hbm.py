@@ -933,7 +933,8 @@ class HBM2ePageAnnotator(Annotator):
         load_page_status()
         fetch_column_index()
         annotation_list[column_index] = symbol_column_do_read
-        self.pages_status[bank_index][column_index] = HBM2ePageStatus.READ
+        if self.pages_status[bank_index][column_index] != HBM2ePageStatus.WRITTEN:
+          self.pages_status[bank_index][column_index] = HBM2ePageStatus.READ
 
       case HBM2eColumnCommand_ReadAutoPrecharge():
         fetch_pseudo_channel()
