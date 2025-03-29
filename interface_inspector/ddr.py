@@ -816,8 +816,8 @@ class DDR5Interface(Interface):
       bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      column_address     = (   command_words[2][1:7]
-                            ** command_words[3][0:2] ) << 3
+      column_address     = (   command_words[3][0:2]
+                            ** command_words[2][1:7] ) << 3
       command = DDR5Command_WritePattern (
         timestamp          = command_words_timestamps[2],
         chip_select        = chip_select,
@@ -832,8 +832,8 @@ class DDR5Interface(Interface):
       bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      column_address     = (   command_words[2][1:7]
-                            ** command_words[3][0:2] ) << 3
+      column_address     = (   command_words[3][0:2]
+                            ** command_words[2][1:7] ) << 3
       command = DDR5Command_WritePatternAutoPrecharge (
         timestamp          = command_words_timestamps[2],
         chip_select        = chip_select,
@@ -873,8 +873,8 @@ class DDR5Interface(Interface):
       bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      column_address     = (   command_words[2][1:7]
-                            ** command_words[3][0:2] ) << 3
+      column_address     = (   command_words[3][0:2]
+                            ** command_words[2][1:7] ) << 3
       burst_length       =     command_words[0][5]
       partial_write      =     command_words[3][4]
       command = DDR5Command_Write (
@@ -893,8 +893,8 @@ class DDR5Interface(Interface):
       bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      column_address     = (   command_words[2][1:7]
-                            ** command_words[3][0:2] ) << 3
+      column_address     = (   command_words[3][0:2]
+                            ** command_words[2][1:7] ) << 3
       burst_length       =     command_words[0][5]
       partial_write      =     command_words[3][4]
       command = DDR5Command_WriteAutoPrecharge (
@@ -913,8 +913,8 @@ class DDR5Interface(Interface):
       bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      column_address     = (   command_words[2][0:7]
-                            ** command_words[3][0:2] ) << 2
+      column_address     = (   command_words[3][0:2]
+                            ** command_words[2][0:7] ) << 2
       burst_length       =     command_words[0][5]
       command = DDR5Command_Read (
         timestamp          = command_words_timestamps[2],
@@ -931,8 +931,8 @@ class DDR5Interface(Interface):
       bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      column_address     = (   command_words[2][0:7]
-                            ** command_words[3][0:2] ) << 2
+      column_address     = (   command_words[3][0:2]
+                            ** command_words[2][0:7] ) << 2
       burst_length       =     command_words[0][5]
       command = DDR5Command_ReadAutoPrecharge (
         timestamp          = command_words_timestamps[2],
