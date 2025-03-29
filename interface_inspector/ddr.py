@@ -795,13 +795,13 @@ class DDR5Interface(Interface):
     )
 
     if command_function == DDR5Command_Activate:
-      chip_id            =     command_words[1][4:6]
-      bank_group_address =     command_words[1][1:3]
+      chip_id            =     command_words[1][4:7]
+      bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      row_address        = (   command_words[3][0:6]
-                            ** command_words[2][0:6]
-                            ** command_words[0][2:5] )
+      row_address        = (   command_words[3][0:7]
+                            ** command_words[2][0:7]
+                            ** command_words[0][2:6] )
       command = DDR5Command_Activate (
         timestamp          = command_words_timestamps[2],
         chip_select        = chip_select,
@@ -812,12 +812,12 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_WritePattern:
-      chip_id            =     command_words[1][4:6]
-      bank_group_address =     command_words[1][1:3]
+      chip_id            =     command_words[1][4:7]
+      bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      column_address     = (   command_words[2][1:6]
-                            ** command_words[3][0:1] ) << 3
+      column_address     = (   command_words[2][1:7]
+                            ** command_words[3][0:2] ) << 3
       command = DDR5Command_WritePattern (
         timestamp          = command_words_timestamps[2],
         chip_select        = chip_select,
@@ -828,12 +828,12 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_WritePatternAutoPrecharge:
-      chip_id            =     command_words[1][4:6]
-      bank_group_address =     command_words[1][1:3]
+      chip_id            =     command_words[1][4:7]
+      bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      column_address     = (   command_words[2][1:6]
-                            ** command_words[3][0:1] ) << 3
+      column_address     = (   command_words[2][1:7]
+                            ** command_words[3][0:2] ) << 3
       command = DDR5Command_WritePatternAutoPrecharge (
         timestamp          = command_words_timestamps[2],
         chip_select        = chip_select,
@@ -844,9 +844,9 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_ModeRegisterWrite:
-      mode_register = (   command_words[0][5:6]
-                       ** command_words[1][0:5] )
-      operation     = (   command_words[2][0:6]
+      mode_register = (   command_words[0][5:7]
+                       ** command_words[1][0:6] )
+      operation     = (   command_words[2][0:7]
                        ** command_words[3][0] )
       control_word  =     command_words[3][3]
       command = DDR5Command_ModeRegisterWrite (
@@ -858,8 +858,8 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_ModeRegisterRead:
-      mode_register = (   command_words[0][5:6]
-                       ** command_words[1][0:5] )
+      mode_register = (   command_words[0][5:7]
+                       ** command_words[1][0:6] )
       control_word  =     command_words[3][3]
       command = DDR5Command_ModeRegisterRead (
         timestamp     = command_words_timestamps[2],
@@ -869,12 +869,12 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_Write:
-      chip_id            =     command_words[1][4:6]
-      bank_group_address =     command_words[1][1:3]
+      chip_id            =     command_words[1][4:7]
+      bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      column_address     = (   command_words[2][1:6]
-                            ** command_words[3][0:1] ) << 3
+      column_address     = (   command_words[2][1:7]
+                            ** command_words[3][0:2] ) << 3
       burst_length       =     command_words[0][5]
       partial_write      =     command_words[3][4]
       command = DDR5Command_Write (
@@ -889,12 +889,12 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_WriteAutoPrecharge:
-      chip_id            =     command_words[1][4:6]
-      bank_group_address =     command_words[1][1:3]
+      chip_id            =     command_words[1][4:7]
+      bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      column_address     = (   command_words[2][1:6]
-                            ** command_words[3][0:1] ) << 3
+      column_address     = (   command_words[2][1:7]
+                            ** command_words[3][0:2] ) << 3
       burst_length       =     command_words[0][5]
       partial_write      =     command_words[3][4]
       command = DDR5Command_WriteAutoPrecharge (
@@ -909,12 +909,12 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_Read:
-      chip_id            =     command_words[1][4:6]
-      bank_group_address =     command_words[1][1:3]
+      chip_id            =     command_words[1][4:7]
+      bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      column_address     = (   command_words[2][0:6]
-                            ** command_words[3][0:1] ) << 2
+      column_address     = (   command_words[2][0:7]
+                            ** command_words[3][0:2] ) << 2
       burst_length       =     command_words[0][5]
       command = DDR5Command_Read (
         timestamp          = command_words_timestamps[2],
@@ -927,12 +927,12 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_ReadAutoPrecharge:
-      chip_id            =     command_words[1][4:6]
-      bank_group_address =     command_words[1][1:3]
+      chip_id            =     command_words[1][4:7]
+      bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
-      column_address     = (   command_words[2][0:6]
-                            ** command_words[3][0:1] ) << 2
+      column_address     = (   command_words[2][0:7]
+                            ** command_words[3][0:2] ) << 2
       burst_length       =     command_words[0][5]
       command = DDR5Command_ReadAutoPrecharge (
         timestamp          = command_words_timestamps[2],
@@ -945,8 +945,8 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_VrefCA:
-      operation = (   command_words[1][0:4]
-                   ** command_words[0][5:6] )
+      operation = (   command_words[1][0:5]
+                   ** command_words[0][5:7] )
       command = DDR5Command_VrefCA (
         timestamp   = command_words_timestamps[0],
         chip_select = chip_select,
@@ -954,8 +954,8 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_VrefCS:
-      operation = (   command_words[1][0:4]
-                   ** command_words[0][5:6] )
+      operation = (   command_words[1][0:5]
+                   ** command_words[0][5:7] )
       command = DDR5Command_VrefCS (
         timestamp   = command_words_timestamps[0],
         chip_select = chip_select,
@@ -963,7 +963,7 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_RefreshAll:
-      chip_id               = command_words[1][4:6]
+      chip_id               = command_words[1][4:7]
       refresh_interval_rate = command_words[1][1]
       command = DDR5Command_RefreshAll (
         timestamp             = command_words_timestamps[0],
@@ -973,7 +973,7 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_RefreshManagementAll:
-      chip_id = command_words[1][4:6]
+      chip_id = command_words[1][4:7]
       command = DDR5Command_RefreshManagementAll (
         timestamp   = command_words_timestamps[0],
         chip_select = chip_select,
@@ -981,7 +981,7 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_RefreshSameBank:
-      chip_id               = command_words[1][4:6]
+      chip_id               =     command_words[1][4:7]
       bank_address          = (   command_words[1][0]
                                ** command_words[0][6] )
       refresh_interval_rate = command_words[1][1]
@@ -994,7 +994,7 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_RefreshManagementSameBank:
-      chip_id      = command_words[1][4:6]
+      chip_id      =     command_words[1][4:7]
       bank_address = (   command_words[1][0]
                       ** command_words[0][6] )
       command = DDR5Command_RefreshManagementSameBank (
@@ -1005,7 +1005,7 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_PrechargeAll:
-      chip_id = command_words[1][4:6]
+      chip_id = command_words[1][4:7]
       command = DDR5Command_PrechargeAll (
         timestamp   = command_words_timestamps[0],
         chip_select = chip_select,
@@ -1013,7 +1013,7 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_PrechargeSameBank:
-      chip_id = command_words[1][4:6]
+      chip_id = command_words[1][4:7]
       command = DDR5Command_PrechargeSameBank (
         timestamp    = command_words_timestamps[0],
         chip_select  = chip_select,
@@ -1022,8 +1022,8 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_Precharge:
-      chip_id            =     command_words[1][4:6]
-      bank_group_address =     command_words[1][1:3]
+      chip_id            =     command_words[1][4:7]
+      bank_group_address =     command_words[1][1:4]
       bank_address       = (   command_words[1][0]
                             ** command_words[0][6] )
       command = DDR5Command_Precharge (
@@ -1055,8 +1055,8 @@ class DDR5Interface(Interface):
       )
 
     elif command_function == DDR5Command_MultiPurposeCommand:
-      operation = (   command_words[1][0:5]
-                   ** command_words[0][5:6] )
+      operation = (   command_words[1][0:6]
+                   ** command_words[0][5:7] )
       command = DDR5Command_MultiPurposeCommand (
         timestamp   = command_words_timestamps[0],
         chip_select = chip_select,
