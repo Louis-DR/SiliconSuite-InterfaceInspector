@@ -1130,7 +1130,8 @@ class DDR5BankAnnotator(Annotator):
       physical_rank    = command.chip_select.decimal()
       logical_rank     = command.chip_id.decimal()
       rank_address     = physical_rank * logical_rank
-      rank_banks_slice = slice(rank_address * banks_per_chip, (rank_address + 1) * banks_per_chip)
+      rank_banks_slice = slice( rank_address      * banks_per_chip,
+                               (rank_address + 1) * banks_per_chip)
 
     bank_group_address = None
     bank_address       = None
