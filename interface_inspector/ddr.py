@@ -4,6 +4,7 @@ from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
 from .utils import change_case, command_str, Color
 from .command import Command
 from .interface import Interface
+from .annotator import Annotator
 
 
 
@@ -747,7 +748,7 @@ class DDR5Interface(Interface):
     if sample_CSN is None: return None
 
     # Decode the chip select
-    chip_select = 0
+    chip_select = None
     for chip_select_index in range(chip_select_width):
       chip_select_test = VCDValue("b"+(chip_select_width-chip_select_index-1)*"1"+"0"+chip_select_index*"1", chip_select_width)
       if sample_CSN.value.equal_no_xy(chip_select_test):
@@ -1073,3 +1074,173 @@ class DDR5Interface(Interface):
       if next_command:
         yield next_command
       else: return
+
+
+
+
+
+
+column_address_width       = 8  # C3 to C10
+row_address_width          = 18 # R0 to R17
+bank_group_address_width   = 3  # BG0 to BG2
+bank_address_width         = 2  # B0 to B1
+chip_id_width              = 0  # FixMe: should be up to CID0 to CID2 if 3DS enabled
+chip_select_width          = 1  # FixMe: should depend on number of physical ranks
+
+columns_per_row            = 2**column_address_width
+rows_per_bank              = 2**row_address_width
+banks_per_bank_group       = 2**bank_address_width
+bank_groups_per_chip       = 2**bank_group_address_width
+banks_per_chip             = banks_per_bank_group * bank_groups_per_chip
+chips_per_rank             = 2**chip_id_width
+ranks_per_channel          = 2**chip_select_width
+banks_per_channel          = ranks_per_channel * chips_per_rank * banks_per_chip
+
+symbol_bank_inactive        = Color.FAINT  + '│' + Color.RESET
+symbol_bank_activate        = Color.RED    + '█' + Color.RESET
+symbol_bank_precharge       = Color.GREEN  + '█' + Color.RESET
+symbol_bank_read            = Color.YELLOW + '█' + Color.RESET
+symbol_bank_read_precharge  = Color.YELLOW + '█' + Color.RESET
+symbol_bank_write           = Color.CYAN   + '█' + Color.RESET
+symbol_bank_write_precharge = Color.CYAN   + '█' + Color.RESET
+symbol_bank_refresh         = Color.BLUE   + '█' + Color.RESET
+symbol_bank_idle            =                '┃'
+
+class DDR5BankAnnotator(Annotator):
+  """ Display the status and activity of all banks. """
+
+  def __init__(self):
+    self.banks_active      = [False] * banks_per_channel
+    self.annotation_string = " "     * banks_per_channel
+
+  def update(self, command:DDR5Command):
+    annotation_list = []
+    for bank_index in range(banks_per_channel):
+      annotation_list.append(symbol_bank_idle if self.banks_active[bank_index] else symbol_bank_inactive)
+
+    physical_rank    = None
+    logical_rank     = None
+    rank_address     = None
+    rank_banks_slice = None
+    def fetch_rank():
+      nonlocal physical_rank
+      nonlocal logical_rank
+      nonlocal rank_address
+      nonlocal rank_banks_slice
+      physical_rank    = command.chip_select.decimal()
+      logical_rank     = command.chip_id.decimal()
+      rank_address     = physical_rank * logical_rank
+      rank_banks_slice = slice(rank_address * banks_per_chip, (rank_address + 1) * banks_per_chip)
+
+    bank_group_address = None
+    bank_address       = None
+    bank_index         = None
+    def fetch_bank_index():
+      nonlocal bank_address
+      nonlocal bank_group_address
+      nonlocal bank_index
+      bank_group_address = command.bank_group_address.decimal()
+      bank_address       = command.bank_address.decimal()
+      bank_index         = rank_address * banks_per_chip  +  bank_group_address * banks_per_bank_group  +  bank_address
+
+    def fetch_only_bank_address():
+      nonlocal bank_address
+      bank_address = command.bank_address.decimal()
+
+    column_address = None
+    column_index   = None
+    def fetch_column_index():
+      nonlocal column_address
+      nonlocal column_index
+      column_address = command.column_address.decimal()
+      column_index   = column_address >> 3
+
+    match command:
+
+      case DDR5Command_Activate():
+        fetch_rank()
+        fetch_bank_index()
+        annotation_list[bank_index] = symbol_bank_activate
+        self.banks_active[bank_index] = True
+
+      case DDR5Command_WritePattern():
+        fetch_rank()
+        fetch_bank_index()
+        annotation_list[bank_index] = symbol_bank_write
+
+      case DDR5Command_WritePatternAutoPrecharge():
+        fetch_rank()
+        fetch_bank_index()
+        annotation_list[bank_index] = symbol_bank_write
+        self.banks_active[bank_index] = False
+
+      case DDR5Command_Write():
+        fetch_rank()
+        fetch_bank_index()
+        annotation_list[bank_index] = symbol_bank_write
+
+      case DDR5Command_WriteAutoPrecharge():
+        fetch_rank()
+        fetch_bank_index()
+        annotation_list[bank_index] = symbol_bank_write
+        self.banks_active[bank_index] = False
+
+      case DDR5Command_Read():
+        fetch_rank()
+        fetch_bank_index()
+        annotation_list[bank_index] = symbol_bank_read
+
+      case DDR5Command_ReadAutoPrecharge():
+        fetch_rank()
+        fetch_bank_index()
+        annotation_list[bank_index] = symbol_bank_read
+        self.banks_active[bank_index] = False
+
+      case DDR5Command_RefreshAll():
+        fetch_rank()
+        annotation_list[rank_banks_slice] = [symbol_bank_refresh] * banks_per_chip
+
+      case DDR5Command_RefreshManagementAll():
+        fetch_rank()
+        annotation_list[rank_banks_slice] = [symbol_bank_refresh] * banks_per_chip
+
+      case DDR5Command_RefreshSameBank():
+        fetch_rank()
+        fetch_only_bank_address()
+        for bank_group_index in range(bank_groups_per_chip):
+          bank_index = bank_group_index * banks_per_bank_group + bank_address
+          annotation_list[bank_index] = symbol_bank_refresh
+
+      case DDR5Command_RefreshManagementSameBank():
+        fetch_rank()
+        fetch_only_bank_address()
+        for bank_group_index in range(bank_groups_per_chip):
+          bank_index = bank_group_index * banks_per_bank_group + bank_address
+          annotation_list[bank_index] = symbol_bank_refresh
+
+      case DDR5Command_PrechargeAll():
+        fetch_rank()
+        annotation_list[rank_banks_slice]   = [symbol_bank_precharge] * banks_per_chip
+        self.banks_active[rank_banks_slice] = [False] * banks_per_chip
+
+      case DDR5Command_PrechargeSameBank():
+        fetch_rank()
+        fetch_only_bank_address()
+        for bank_group_index in range(bank_groups_per_chip):
+          bank_index = bank_group_index * banks_per_bank_group + bank_address
+          annotation_list[bank_index] = symbol_bank_precharge
+          self.banks_active[bank_index] = False
+
+      case DDR5Command_Precharge():
+        fetch_rank()
+        fetch_bank_index()
+        annotation_list[bank_index] = symbol_bank_precharge
+        self.banks_active[bank_index] = False
+
+      case _:
+        pass
+
+    self.annotation_string = "".join(annotation_list)
+
+  def __repr__(self):
+    return self.annotation_string
