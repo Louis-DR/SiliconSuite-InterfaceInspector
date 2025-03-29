@@ -741,9 +741,13 @@ class HBM2eBankAnnotator(Annotator):
       annotation_list.append(symbol_bank_idle if self.banks_active[bank_index] else symbol_bank_inactive)
 
     pseudo_channel = None
+    pseudo_channel_banks_slice = None
     def fetch_pseudo_channel():
       nonlocal pseudo_channel
+      nonlocal pseudo_channel_banks_slice
       pseudo_channel = command.pseudo_channel.decimal()
+      pseudo_channel_banks_slice = slice( pseudo_channel      * banks_per_pseudo_channel,
+                                         (pseudo_channel + 1) * banks_per_pseudo_channel)
 
     stack_id     = None
     bank_address = None
@@ -772,8 +776,7 @@ class HBM2eBankAnnotator(Annotator):
 
       case HBM2eRowCommand_PrechargeAll():
         fetch_pseudo_channel()
-        annotation_list[  pseudo_channel    * banks_per_pseudo_channel
-                       : (pseudo_channel+1) * banks_per_pseudo_channel] = [symbol_bank_refresh] * symbol_bank_precharge
+        annotation_list[pseudo_channel_banks_slice] = [symbol_bank_refresh] * symbol_bank_precharge
         self.banks_active = [False] * banks_per_channel
 
       case HBM2eRowCommand_SingleBankRefresh():
@@ -783,8 +786,7 @@ class HBM2eBankAnnotator(Annotator):
 
       case HBM2eRowCommand_Refresh():
         fetch_pseudo_channel()
-        annotation_list[  pseudo_channel    * banks_per_pseudo_channel
-                       : (pseudo_channel+1) * banks_per_pseudo_channel] = [symbol_bank_refresh] * banks_per_pseudo_channel
+        annotation_list[pseudo_channel_banks_slice] = [symbol_bank_refresh] * banks_per_pseudo_channel
 
       case HBM2eColumnCommand_Read():
         fetch_pseudo_channel()
