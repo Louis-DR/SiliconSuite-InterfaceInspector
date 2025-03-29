@@ -618,7 +618,7 @@ class HBM2eInterface(Interface):
       pseudo_channel =     column_command_w1[7]
       stack_id       = (   column_command_w0[8]
                         ** column_command_w1[0])
-      bank_address   =     column_command_w0[4:8]
+      bank_address   =     column_command_w0[4:7]
       column_address = (   column_command_w1[3:7]
                         ** column_command_w1[1]) << 1
       column_command = HBM2eColumnCommand_Read (
@@ -634,7 +634,7 @@ class HBM2eInterface(Interface):
       pseudo_channel =     column_command_w1[7]
       stack_id       = (   column_command_w0[8]
                         ** column_command_w1[0])
-      bank_address   =     column_command_w0[4:8]
+      bank_address   =     column_command_w0[4:7]
       column_address = (   column_command_w1[3:7]
                         ** column_command_w1[1]) << 1
       column_command = HBM2eColumnCommand_ReadAutoPrecharge (
@@ -650,7 +650,7 @@ class HBM2eInterface(Interface):
       pseudo_channel =     column_command_w1[7]
       stack_id       = (   column_command_w0[8]
                         ** column_command_w1[0])
-      bank_address   =     column_command_w0[4:8]
+      bank_address   =     column_command_w0[4:7]
       column_address = (   column_command_w1[3:7]
                         ** column_command_w1[1]) << 1
       column_command = HBM2eColumnCommand_Write (
@@ -666,7 +666,7 @@ class HBM2eInterface(Interface):
       pseudo_channel =     column_command_w1[7]
       stack_id       = (   column_command_w0[8]
                         ** column_command_w1[0])
-      bank_address   =     column_command_w0[4:8]
+      bank_address   =     column_command_w0[4:7]
       column_address = (   column_command_w1[3:7]
                         ** column_command_w1[1]) << 1
       column_command = HBM2eColumnCommand_WriteAutoPrecharge (
@@ -679,7 +679,7 @@ class HBM2eInterface(Interface):
       )
     elif column_command_function == HBM2eColumnCommand_ModeRegisterSet:
       parity        =     column_command_w1[2]
-      mode_register =     column_command_w0[4:8]
+      mode_register =     column_command_w0[4:7]
       operation     = (   column_command_w1[3:8]
                        ** column_command_w1[0:2])
       column_command = HBM2eColumnCommand_ModeRegisterSet (
@@ -708,7 +708,7 @@ class HBM2eInterface(Interface):
 
 column_address_width = 5 # Only CA1 to CA5 in HBM2e mode
 row_address_width    = 15
-bank_address_width   = 5
+bank_address_width   = 4
 stack_id_width       = 1
 
 columns_per_row            = 2**column_address_width
