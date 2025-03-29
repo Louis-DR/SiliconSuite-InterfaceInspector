@@ -38,7 +38,7 @@ class VCDValue:
       # Real number
       if identifier_code == 'r' or identifier_code == 'R':
         self.format = VCDFormat.REAL
-        self.value  = value
+        self.value  = int(value)
 
       # Binary number
       elif identifier_code == 'b' or identifier_code == 'B':
@@ -59,7 +59,7 @@ class VCDValue:
         self.value = value
 
     # Flag to easily identify values not fully defined
-    self.has_xz = 'x' in self.value or 'X' in self.value or 'z' in self.value or 'Z' in value
+    self.has_xz = self.format == VCDFormat.BINARY and ('x' in self.value or 'X' in self.value or 'z' in self.value or 'Z' in value)
 
 
 
@@ -181,6 +181,7 @@ class VCDValue:
 
   def equal_no_xy(self, other:VCDValue) -> bool:
     """ Equality comparison that interprets X and Z as don't care and only checks the LSBs up to the shortest value. """
+    if self.format == VCDFormat.REAL: return self == other
     for self_bit, other_bit in zip(self.value, other.value):
       if self_bit != other_bit and self_bit not in 'xXzZ' and other_bit not in 'xXzZ':
         return False
