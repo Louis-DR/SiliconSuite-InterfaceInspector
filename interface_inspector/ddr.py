@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import Generator
 from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
-from .utils import change_case, command_str, Color
+from .utils import change_case, command_str, Color, remove_colors
 from .command import Command
 from .interface import Interface
 from .annotator import Annotator
@@ -1229,6 +1230,200 @@ class DDR5BankAnnotator(Annotator):
         fetch_bank_index()
         annotation_list[bank_index] = symbol_bank_precharge
         self.banks_active[bank_index] = False
+
+      case _:
+        pass
+
+    self.annotation_string = "".join(annotation_list)
+
+  def __repr__(self):
+    return self.annotation_string
+
+
+
+
+
+
+symbol_column_inactive        = Color.RED + Color.BLINK + '╳' + Color.RESET
+symbol_column_activate        = Color.RED    + '━' + Color.RESET
+symbol_column_precharge_all   = Color.GREEN  + '━' + Color.RESET
+symbol_column_unused          = Color.FAINT  + '╌' + Color.RESET
+symbol_column_do_read         = Color.YELLOW + '█' + Color.RESET
+symbol_column_do_write        = Color.CYAN   + '█' + Color.RESET
+symbol_column_is_read         = Color.WHITE  + '╍' + Color.RESET
+symbol_column_is_written      = Color.WHITE  + '━' + Color.RESET
+column_precharge_color        = Color.GREEN
+
+class DDR5PageStatus(Enum):
+  INACTIVE  = 0
+  UNUSED    = 1
+  READ      = 2
+  WRITTEN   = 3
+
+class DDR5PageAnnotator(Annotator):
+  """ Display the status and activity of the page accessed. """
+
+  def __init__(self):
+    self.annotation_string = " " * columns_per_row
+    self.pages_status = [[DDR5PageStatus.UNUSED] * columns_per_row for bank in range(banks_per_channel)]
+
+  def update(self, command:DDR5Command):
+
+    chip_select      = None
+    chip_id          = None
+    rank_address     = None
+    rank_banks_slice = None
+    def fetch_rank():
+      nonlocal chip_select
+      nonlocal chip_id
+      nonlocal rank_address
+      nonlocal rank_banks_slice
+      chip_select      = command.chip_select.decimal()
+      chip_id          = command.chip_id.decimal()
+      rank_address     = chip_select * chips_per_rank  +  chip_id
+      rank_banks_slice = slice( rank_address      * banks_per_chip,
+                               (rank_address + 1) * banks_per_chip)
+
+    bank_group_address = None
+    bank_address       = None
+    bank_index         = None
+    def fetch_bank_index():
+      nonlocal bank_address
+      nonlocal bank_group_address
+      nonlocal bank_index
+      bank_group_address = command.bank_group_address.decimal()
+      bank_address       = command.bank_address.decimal()
+      bank_index         = rank_address * banks_per_chip  +  bank_group_address * banks_per_bank_group  +  bank_address
+
+    def fetch_only_bank_address():
+      nonlocal bank_address
+      bank_address = command.bank_address.decimal()
+
+    column_address = None
+    column_index   = None
+    def fetch_column_index():
+      nonlocal column_address
+      nonlocal column_index
+      column_address = command.column_address.decimal()
+      column_index   = column_address >> 4
+
+    annotation_list = [" "] * columns_per_row
+    def load_page_status():
+      nonlocal annotation_list
+      annotation_list = []
+      page_status = self.pages_status[bank_index]
+      for column_index in range(columns_per_row):
+        match page_status[column_index]:
+          case DDR5PageStatus.INACTIVE:
+            annotation_list.append(symbol_column_inactive)
+          case DDR5PageStatus.UNUSED:
+            annotation_list.append(symbol_column_unused)
+          case DDR5PageStatus.READ:
+            annotation_list.append(symbol_column_is_read)
+          case DDR5PageStatus.WRITTEN:
+            annotation_list.append(symbol_column_is_written)
+
+    def activate_page_status():
+      nonlocal bank_index
+      self.pages_status[bank_index] = [DDR5PageStatus.UNUSED] * columns_per_row
+
+    def clear_page_status():
+      nonlocal bank_index
+      self.pages_status[bank_index] = [DDR5PageStatus.UNUSED] * columns_per_row
+
+    def clear_all_page_status():
+      self.pages_status = [[DDR5PageStatus.UNUSED] * columns_per_row for bank in range(banks_per_channel)]
+
+    def clear_same_bank_page_status():
+      for bank_group_index in range(bank_groups_per_chip):
+        bank_index = bank_group_index * banks_per_bank_group + bank_address
+        self.pages_status[bank_index] = [DDR5PageStatus.UNUSED] * columns_per_row
+
+    def apply_precharge_format():
+      # Iterate over the symbols of all columns
+      for column_index in range(columns_per_row):
+        # Remove the previous color
+        annotation_list[column_index] = remove_colors(annotation_list[column_index])
+        # Add the color of precharge
+        annotation_list[column_index] = column_precharge_color + annotation_list[column_index] + Color.RESET
+
+    match command:
+
+      case DDR5Command_Activate():
+        fetch_rank()
+        fetch_bank_index()
+        annotation_list = [symbol_column_activate] * columns_per_row
+        activate_page_status()
+
+      case DDR5Command_WritePattern():
+        fetch_rank()
+        fetch_bank_index()
+        load_page_status()
+        fetch_column_index()
+        annotation_list[column_index] = symbol_column_do_write
+        self.pages_status[bank_index][column_index] = DDR5PageStatus.WRITTEN
+
+      case DDR5Command_WritePatternAutoPrecharge():
+        fetch_rank()
+        fetch_bank_index()
+        load_page_status()
+        apply_precharge_format()
+        fetch_column_index()
+        annotation_list[column_index] = symbol_column_do_write
+        clear_page_status()
+
+      case DDR5Command_Write():
+        fetch_rank()
+        fetch_bank_index()
+        load_page_status()
+        fetch_column_index()
+        annotation_list[column_index] = symbol_column_do_write
+        self.pages_status[bank_index][column_index] = DDR5PageStatus.WRITTEN
+
+      case DDR5Command_WriteAutoPrecharge():
+        fetch_rank()
+        fetch_bank_index()
+        load_page_status()
+        apply_precharge_format()
+        fetch_column_index()
+        annotation_list[column_index] = symbol_column_do_write
+        clear_page_status()
+
+      case DDR5Command_Read():
+        fetch_rank()
+        fetch_bank_index()
+        load_page_status()
+        fetch_column_index()
+        annotation_list[column_index] = symbol_column_do_read
+        if self.pages_status[bank_index][column_index] != DDR5PageStatus.WRITTEN:
+          self.pages_status[bank_index][column_index] = DDR5PageStatus.READ
+
+      case DDR5Command_ReadAutoPrecharge():
+        fetch_rank()
+        fetch_bank_index()
+        load_page_status()
+        apply_precharge_format()
+        fetch_column_index()
+        annotation_list[column_index] = symbol_column_do_read
+        clear_page_status()
+
+      case DDR5Command_PrechargeAll():
+        fetch_rank()
+        annotation_list = [symbol_column_precharge_all] * columns_per_row
+        clear_all_page_status()
+
+      case DDR5Command_PrechargeSameBank():
+        fetch_rank()
+        fetch_only_bank_address()
+        annotation_list = [symbol_column_precharge_all] * columns_per_row
+        clear_all_page_status()
+
+      case DDR5Command_Precharge():
+        fetch_rank()
+        fetch_bank_index()
+        load_page_status()
+        apply_precharge_format()
+        clear_page_status()
 
       case _:
         pass
