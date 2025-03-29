@@ -14,7 +14,7 @@ from .annotator import Annotator
 command_width = 5
 context_width = 0
 value_width   = 2
-line_width    = 44
+line_width    = 45
 
 enable_cid    = False
 enable_extras = False
@@ -1080,10 +1080,10 @@ class DDR5Interface(Interface):
 
 
 
-column_address_width       = 8  # C3 to C10
+column_address_width       = 6  # C4 to C9
 row_address_width          = 18 # R0 to R17
 bank_group_address_width   = 3  # BG0 to BG2
-bank_address_width         = 2  # B0 to B1
+bank_address_width         = 2  # BA0 to BA1
 chip_id_width              = 0  # FixMe: should be up to CID0 to CID2 if 3DS enabled
 chip_select_width          = 1  # FixMe: should depend on number of physical ranks
 
@@ -1118,18 +1118,18 @@ class DDR5BankAnnotator(Annotator):
     for bank_index in range(banks_per_channel):
       annotation_list.append(symbol_bank_idle if self.banks_active[bank_index] else symbol_bank_inactive)
 
-    physical_rank    = None
-    logical_rank     = None
+    chip_select      = None
+    chip_id          = None
     rank_address     = None
     rank_banks_slice = None
     def fetch_rank():
-      nonlocal physical_rank
-      nonlocal logical_rank
+      nonlocal chip_select
+      nonlocal chip_id
       nonlocal rank_address
       nonlocal rank_banks_slice
-      physical_rank    = command.chip_select.decimal()
-      logical_rank     = command.chip_id.decimal()
-      rank_address     = physical_rank * logical_rank
+      chip_select      = command.chip_select.decimal()
+      chip_id          = command.chip_id.decimal()
+      rank_address     = chip_select * chips_per_rank  +  chip_id
       rank_banks_slice = slice( rank_address      * banks_per_chip,
                                (rank_address + 1) * banks_per_chip)
 
@@ -1147,14 +1147,6 @@ class DDR5BankAnnotator(Annotator):
     def fetch_only_bank_address():
       nonlocal bank_address
       bank_address = command.bank_address.decimal()
-
-    column_address = None
-    column_index   = None
-    def fetch_column_index():
-      nonlocal column_address
-      nonlocal column_index
-      column_address = command.column_address.decimal()
-      column_index   = column_address >> 3
 
     match command:
 
