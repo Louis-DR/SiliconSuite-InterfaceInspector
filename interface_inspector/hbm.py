@@ -15,7 +15,11 @@ from .annotator import Annotator
 command_width = 5
 context_width = 0
 value_width   = 2
-line_width    = 43
+line_width    = 50
+
+write_latency = 10
+read_latency  = 35
+burst_length  = 8
 
 class HBM2eCommand(Command):
   """ HBM2e command base type. """
@@ -688,6 +692,58 @@ class HBM2eInterface(Interface):
         mode_register = mode_register,
         operation     = operation,
       )
+
+    # Fetch the data
+    if column_command_function in [HBM2eColumnCommand_Read, HBM2eColumnCommand_ReadAutoPrecharge]:
+
+      # Use the CK_c to move half a tCK before the data burst
+      self.CK_C.get_edge_at_timestamp(timestamp_column_command_w0)
+      for t_ck in range(read_latency-1):
+        self.CK_C.get_edge(move=True)
+
+      # Move to the first beat using the read strobe
+      self.RDQS_T.get_at_timestamp(self.CK_C.current_sample.timestamp, move=True)
+
+      # Capture the beats of the data burst
+      data_burst_data     = VCDValue("",0)
+      data_beat_timestamp = None
+      data_beat_data      = None
+      data_beat_even      = True
+      for beat in range(burst_length):
+        if data_beat_even:
+          data_beat_timestamp = self.RDQS_T.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+        else:
+          data_beat_timestamp = self.RDQS_C.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+        data_beat_even    = not data_beat_even
+        data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value
+        data_burst_data **= data_beat_data
+
+    elif column_command_function in [HBM2eColumnCommand_Write, HBM2eColumnCommand_WriteAutoPrecharge]:
+
+      # Use the CK_c to move half a tCK before the data burst
+      self.CK_C.get_edge_at_timestamp(timestamp_column_command_w0)
+      for t_ck in range(write_latency-1):
+        self.CK_C.get_edge(move=True)
+
+      # Move to the first beat using the write strobe
+      self.WDQS_T.get_at_timestamp(self.CK_C.current_sample.timestamp, move=True)
+
+      # Capture the beats of the data burst
+      data_burst_data     = VCDValue("",0)
+      data_beat_timestamp = None
+      data_beat_data      = None
+      data_beat_even      = True
+      for beat in range(burst_length):
+        if data_beat_even:
+          data_beat_timestamp = self.WDQS_T.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+        else:
+          data_beat_timestamp = self.WDQS_C.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+        data_beat_even    = not data_beat_even
+        data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value
+        data_burst_data **= data_beat_data
+
+      # Set the data of the command
+      column_command.data = data_burst_data
 
     return column_command
 
