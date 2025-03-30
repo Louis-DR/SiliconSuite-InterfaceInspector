@@ -23,7 +23,10 @@ enable_extras = False
 column_address_strobe_latency = 46 # Value for 5200Mbps datarate
 read_latency  = column_address_strobe_latency
 write_latency = read_latency - 2
-ddr5_burst_length = 16
+
+ddr5_data_bus_width = 32
+ddr5_burst_length   = 16
+ddr5_data_width     = ddr5_data_bus_width * ddr5_burst_length
 
 if enable_cid:
   line_width += 5
@@ -1471,6 +1474,43 @@ class DDR5PageAnnotator(Annotator):
         pass
 
     self.annotation_string = "".join(annotation_list)
+
+  def __repr__(self):
+    return self.annotation_string
+
+
+
+
+
+
+word_length           = 32
+number_words          = ddr5_data_width // 32
+data_annotation_width = ddr5_data_width + number_words
+
+class DDR5DataAnnotator(Annotator):
+  """ Display the content of the data bus for reads and writes. """
+
+  def __init__(self):
+    self.annotation_string = " " * data_annotation_width
+
+  def update(self, command:DDR5Command):
+    if type(command) in [DDR5Command_Read,
+                         DDR5Command_ReadAutoPrecharge,
+                         DDR5Command_Write,
+                         DDR5Command_WriteAutoPrecharge]:
+      annotation_list = []
+
+      for word_index in range(number_words):
+        word_value = command.data[ word_index    * word_length :
+                                  (word_index+1) * word_length ]
+        word_string = word_value.hexadecimal()
+        word_string = word_string.replace('0', Color.FAINT + '0' + Color.RESET)
+        annotation_list.append(word_string)
+
+      self.annotation_string = " ".join(annotation_list)
+
+    else:
+      self.annotation_string = " " * data_annotation_width
 
   def __repr__(self):
     return self.annotation_string
