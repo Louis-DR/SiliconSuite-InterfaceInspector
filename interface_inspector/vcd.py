@@ -23,8 +23,8 @@ class VCDValue:
 
     self.width = width
 
-    # Zero width or empty string means empty binary value
-    if width == 0 or len(value) == 0:
+    # Empty string means empty binary value
+    if len(value) == 0:
       self.format = VCDFormat.BINARY
       self.value  = ""
 
@@ -296,7 +296,7 @@ class VCDSignal:
 
         # Update the state of the signal
         if move:
-          self.current_index  = search_index
+          self.current_index = search_index
           if search_index == len(self.vcd):
             self.current_sample = self.vcd[-1]
           else: self.current_sample = self.vcd[search_index]

@@ -20,6 +20,11 @@ line_width    = 45
 enable_cid    = False
 enable_extras = False
 
+column_address_strobe_latency = 46 # Value for 5200Mbps datarate
+read_latency  = column_address_strobe_latency
+write_latency = read_latency - 2
+ddr5_burst_length = 16
+
 if enable_cid:
   line_width += 5
 
@@ -227,6 +232,7 @@ class DDR5Command_Write(DDR5Command):
     self.column_address     = column_address
     self.burst_length       = burst_length
     self.partial_write      = partial_write
+    self.data               = None
   def __repr__(self):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
@@ -267,6 +273,7 @@ class DDR5Command_WriteAutoPrecharge(DDR5Command):
     self.column_address     = column_address
     self.burst_length       = burst_length
     self.partial_write      = partial_write
+    self.data               = None
   def __repr__(self):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
@@ -305,6 +312,7 @@ class DDR5Command_Read(DDR5Command):
     self.bank_address       = bank_address
     self.column_address     = column_address
     self.burst_length       = burst_length
+    self.data               = None
   def __repr__(self):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
@@ -342,6 +350,7 @@ class DDR5Command_ReadAutoPrecharge(DDR5Command):
     self.bank_address       = bank_address
     self.column_address     = column_address
     self.burst_length       = burst_length
+    self.data               = None
   def __repr__(self):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
@@ -1063,6 +1072,61 @@ class DDR5Interface(Interface):
         chip_select = chip_select,
         operation   = operation,
       )
+
+    # Fetch the data
+    if command_function in [DDR5Command_Read, DDR5Command_ReadAutoPrecharge]:
+
+      # Use the CK_c to move half a tCK before the data burst
+      self.CK_C.get_edge_at_timestamp(command_words_timestamps[2])
+      for t_ck in range(read_latency-1):
+        self.CK_C.get_edge(move=True)
+
+      # Move to the first beat using the read strobe
+      self.DQS_T.get_at_timestamp(self.CK_C.current_sample.timestamp, move=True)
+
+      # Capture the beats of the data burst
+      data_burst_data     = VCDValue("",0)
+      data_beat_timestamp = None
+      data_beat_data      = None
+      data_beat_even      = True
+      for beat in range(ddr5_burst_length):
+        if data_beat_even:
+          data_beat_timestamp = self.DQS_T.get_edge(value=VCDValue("b1111",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+        else:
+          data_beat_timestamp = self.DQS_C.get_edge(value=VCDValue("b1111",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+        data_beat_even    = not data_beat_even
+        data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value
+        data_burst_data **= data_beat_data
+
+      # Set the data of the command
+      command.data = data_burst_data
+
+    elif command_function in [DDR5Command_WriteAutoPrecharge, DDR5Command_WriteAutoPrecharge]:
+
+      # Use the CK_c to move half a tCK before the data burst
+      self.CK_C.get_edge_at_timestamp(command_words_timestamps[2])
+      for t_ck in range(write_latency-1):
+        self.CK_C.get_edge(move=True)
+
+      # Move to the first beat using the write strobe
+      self.WDQS_T.get_at_timestamp(self.CK_C.current_sample.timestamp, move=True)
+
+      # Capture the beats of the data burst
+      data_burst_data     = VCDValue("",0)
+      data_beat_timestamp = None
+      data_beat_data      = None
+      data_beat_even      = True
+      for beat in range(ddr5_burst_length):
+        if data_beat_even:
+          data_beat_timestamp = self.WDQS_T.get_edge(value=VCDValue("b1111",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+        else:
+          data_beat_timestamp = self.WDQS_C.get_edge(value=VCDValue("b1111",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+        data_beat_even    = not data_beat_even
+        data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value
+        data_burst_data **= data_beat_data
+
+      # Set the data of the command
+      command.data = data_burst_data
 
     return command
 
