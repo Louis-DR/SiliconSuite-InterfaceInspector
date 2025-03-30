@@ -18,15 +18,20 @@ class VCDFormat(Enum):
 class VCDValue:
   """ A value from a VCD. """
 
-  def __init__(self, value:str, width:int):
+  def __init__(self, value:str="", width:int=0):
     """ VCD value from the raw values from the VCD and the width of the signal. """
 
     self.width = width
 
-    # Single character means a 1-bit signal
-    if width == 1:
+    # Zero width or empty string means empty binary value
+    if width == 0 or len(value) == 0:
       self.format = VCDFormat.BINARY
-      self.value = value[-1]
+      self.value  = ""
+
+    # Single character means a 1-bit signal
+    elif width == 1 or len(value) == 1:
+      self.format = VCDFormat.BINARY
+      self.value  = value[-1]
 
     # Multiple characters can be a real or multi-bit binary number
     else:
