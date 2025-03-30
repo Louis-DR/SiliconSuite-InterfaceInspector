@@ -1033,3 +1033,41 @@ class HBM2ePageAnnotator(Annotator):
 
   def __repr__(self):
     return self.annotation_string
+
+
+
+
+
+
+data_width            = data_bus_width * burst_length
+word_length           = 32
+number_words          = data_width // 32
+data_annotation_width = data_width + number_words
+
+class HBM2eDataAnnotator(Annotator):
+  """ Display the content of the data bus for reads and writes. """
+
+  def __init__(self):
+    self.annotation_string = " " * data_annotation_width
+
+  def update(self, command:HBM2eCommand):
+    if type(command) in [HBM2eColumnCommand_Read,
+                         HBM2eColumnCommand_ReadAutoPrecharge,
+                         HBM2eColumnCommand_Write,
+                         HBM2eColumnCommand_WriteAutoPrecharge]:
+      annotation_list = []
+
+      for word_index in range(number_words):
+        word_value = command.data[ word_index    * word_length :
+                                  (word_index+1) * word_length ]
+        word_string = word_value.hexadecimal()
+        word_string = word_string.replace('0', Color.FAINT + '0' + Color.RESET)
+        annotation_list.append(word_string)
+
+      self.annotation_string = " ".join(annotation_list)
+
+    else:
+      self.annotation_string = " " * data_annotation_width
+
+  def __repr__(self):
+    return self.annotation_string
