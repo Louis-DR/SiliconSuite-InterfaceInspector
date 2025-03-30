@@ -274,6 +274,7 @@ class HBM2eColumnCommand_Read(HBM2eColumnCommand):
     self.stack_id       = stack_id
     self.bank_address   = bank_address
     self.column_address = column_address
+    self.data           = None
   def __repr__(self):
     return command_str(
       timestamp  = self.timestamp,
@@ -305,6 +306,7 @@ class HBM2eColumnCommand_ReadAutoPrecharge(HBM2eColumnCommand):
     self.stack_id       = stack_id
     self.bank_address   = bank_address
     self.column_address = column_address
+    self.data           = None
   def __repr__(self):
     return command_str(
       timestamp  = self.timestamp,
@@ -336,6 +338,7 @@ class HBM2eColumnCommand_Write(HBM2eColumnCommand):
     self.stack_id       = stack_id
     self.bank_address   = bank_address
     self.column_address = column_address
+    self.data           = None
   def __repr__(self):
     return command_str(
       timestamp  = self.timestamp,
@@ -367,6 +370,7 @@ class HBM2eColumnCommand_WriteAutoPrecharge(HBM2eColumnCommand):
     self.stack_id       = stack_id
     self.bank_address   = bank_address
     self.column_address = column_address
+    self.data           = None
   def __repr__(self):
     return command_str(
       timestamp  = self.timestamp,
@@ -718,6 +722,9 @@ class HBM2eInterface(Interface):
         data_beat_even    = not data_beat_even
         data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value
         data_burst_data **= data_beat_data
+
+      # Set the data of the command
+      column_command.data = data_burst_data
 
     elif column_command_function in [HBM2eColumnCommand_Write, HBM2eColumnCommand_WriteAutoPrecharge]:
 
