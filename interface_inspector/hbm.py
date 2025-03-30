@@ -17,9 +17,10 @@ context_width = 0
 value_width   = 2
 line_width    = 50
 
-write_latency = 10
-read_latency  = 35
-burst_length  = 8
+write_latency  = 10
+read_latency   = 35
+burst_length   = 4
+data_bus_width = 64
 
 class HBM2eCommand(Command):
   """ HBM2e command base type. """
