@@ -712,9 +712,19 @@ class HBM2eInterface(Interface):
 
     if data_latency is not None:
 
+      # Pseudo-channels use different halves of the DQ and *DQS buses
+      data_bus_slice       = None
+      strobe_bus_reference = None
+      if column_command.pseudo_channel.decimal() == 1:
+        data_bus_slice       = slice(64,128)
+        strobe_bus_reference = VCDValue("b11xx",4)
+      else:
+        data_bus_slice       = slice(0,64)
+        strobe_bus_reference = VCDValue("bxx11",4)
+
       # Use the CK_c to move half a tCK before the data burst
       self.CK_C.get_edge_at_timestamp(timestamp_column_command_w0)
-      for t_ck in range(data_latency-2):
+      for t_ck in range(data_latency-1):
         self.CK_C.get_edge(move=True)
 
       # Move to the first beat using the read strobe
@@ -726,12 +736,11 @@ class HBM2eInterface(Interface):
       data_beat_timestamp = None
       data_beat_data      = None
       data_beat_even      = True
-      data_bus_slice      = slice(64,128) if column_command.pseudo_channel.decimal() == 1 else slice(0,64)
       for beat in range(burst_length):
         if data_beat_even:
-          data_beat_timestamp = strobe_signal_t.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+          data_beat_timestamp = strobe_signal_t.get_edge(value=strobe_bus_reference, comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
         else:
-          data_beat_timestamp = strobe_signal_c.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+          data_beat_timestamp = strobe_signal_c.get_edge(value=strobe_bus_reference, comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
         data_beat_even    = not data_beat_even
         data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value[data_bus_slice]
         data_burst_data   **= data_beat_data
