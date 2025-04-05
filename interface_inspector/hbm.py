@@ -714,14 +714,15 @@ class HBM2eInterface(Interface):
       data_beat_timestamp = None
       data_beat_data      = None
       data_beat_even      = True
+      data_bus_slice      = slice(64,128) if column_command.pseudo_channel.decimal() == 1 else slice(0,64)
       for beat in range(burst_length):
         if data_beat_even:
           data_beat_timestamp = self.RDQS_T.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
         else:
           data_beat_timestamp = self.RDQS_C.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
         data_beat_even    = not data_beat_even
-        data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value
-        data_burst_data **= data_beat_data
+        data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value[data_bus_slice]
+        data_burst_data   = data_beat_data ** data_burst_data
 
       # Set the data of the command
       column_command.data = data_burst_data
@@ -741,14 +742,15 @@ class HBM2eInterface(Interface):
       data_beat_timestamp = None
       data_beat_data      = None
       data_beat_even      = True
+      data_bus_slice      = slice(64,128) if column_command.pseudo_channel.decimal() == 1 else slice(0,64)
       for beat in range(burst_length):
         if data_beat_even:
           data_beat_timestamp = self.WDQS_T.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
         else:
           data_beat_timestamp = self.WDQS_C.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
         data_beat_even    = not data_beat_even
-        data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value
-        data_burst_data **= data_beat_data
+        data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value[data_bus_slice]
+        data_burst_data   = data_beat_data ** data_burst_data
 
       # Set the data of the command
       column_command.data = data_burst_data
