@@ -714,11 +714,12 @@ class HBM2eInterface(Interface):
 
       # Use the CK_c to move half a tCK before the data burst
       self.CK_C.get_edge_at_timestamp(timestamp_column_command_w0)
-      for t_ck in range(read_latency-1):
+      for t_ck in range(data_latency-2):
         self.CK_C.get_edge(move=True)
 
       # Move to the first beat using the read strobe
       strobe_signal_t.get_at_timestamp(self.CK_C.current_sample.timestamp, move=True)
+      strobe_signal_c.get_at_timestamp(self.CK_C.current_sample.timestamp, move=True)
 
       # Capture the beats of the data burst
       data_burst_data     = VCDValue("",0)
@@ -733,7 +734,7 @@ class HBM2eInterface(Interface):
           data_beat_timestamp = strobe_signal_c.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
         data_beat_even    = not data_beat_even
         data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value[data_bus_slice]
-        data_burst_data   = data_beat_data ** data_burst_data
+        data_burst_data   **= data_beat_data
 
       # Set the data of the command
       column_command.data = data_burst_data
