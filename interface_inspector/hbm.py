@@ -699,7 +699,18 @@ class HBM2eInterface(Interface):
       )
 
     # Fetch the data
+    data_latency    = None
+    strobe_signal_t = None
     if column_command_function in [HBM2eColumnCommand_Read, HBM2eColumnCommand_ReadAutoPrecharge]:
+      data_latency    = read_latency
+      strobe_signal_t = self.RDQS_T
+      strobe_signal_c = self.RDQS_C
+    elif column_command_function in [HBM2eColumnCommand_Write, HBM2eColumnCommand_WriteAutoPrecharge]:
+      data_latency    = write_latency
+      strobe_signal_t = self.WDQS_T
+      strobe_signal_c = self.WDQS_C
+
+    if data_latency is not None:
 
       # Use the CK_c to move half a tCK before the data burst
       self.CK_C.get_edge_at_timestamp(timestamp_column_command_w0)
@@ -707,7 +718,7 @@ class HBM2eInterface(Interface):
         self.CK_C.get_edge(move=True)
 
       # Move to the first beat using the read strobe
-      self.RDQS_T.get_at_timestamp(self.CK_C.current_sample.timestamp, move=True)
+      strobe_signal_t.get_at_timestamp(self.CK_C.current_sample.timestamp, move=True)
 
       # Capture the beats of the data burst
       data_burst_data     = VCDValue("",0)
@@ -717,37 +728,9 @@ class HBM2eInterface(Interface):
       data_bus_slice      = slice(64,128) if column_command.pseudo_channel.decimal() == 1 else slice(0,64)
       for beat in range(burst_length):
         if data_beat_even:
-          data_beat_timestamp = self.RDQS_T.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+          data_beat_timestamp = strobe_signal_t.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
         else:
-          data_beat_timestamp = self.RDQS_C.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
-        data_beat_even    = not data_beat_even
-        data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value[data_bus_slice]
-        data_burst_data   = data_beat_data ** data_burst_data
-
-      # Set the data of the command
-      column_command.data = data_burst_data
-
-    elif column_command_function in [HBM2eColumnCommand_Write, HBM2eColumnCommand_WriteAutoPrecharge]:
-
-      # Use the CK_c to move half a tCK before the data burst
-      self.CK_C.get_edge_at_timestamp(timestamp_column_command_w0)
-      for t_ck in range(write_latency-1):
-        self.CK_C.get_edge(move=True)
-
-      # Move to the first beat using the write strobe
-      self.WDQS_T.get_at_timestamp(self.CK_C.current_sample.timestamp, move=True)
-
-      # Capture the beats of the data burst
-      data_burst_data     = VCDValue("",0)
-      data_beat_timestamp = None
-      data_beat_data      = None
-      data_beat_even      = True
-      data_bus_slice      = slice(64,128) if column_command.pseudo_channel.decimal() == 1 else slice(0,64)
-      for beat in range(burst_length):
-        if data_beat_even:
-          data_beat_timestamp = self.WDQS_T.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
-        else:
-          data_beat_timestamp = self.WDQS_C.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+          data_beat_timestamp = strobe_signal_c.get_edge(value=VCDValue("bxx11",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
         data_beat_even    = not data_beat_even
         data_beat_data    = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value[data_bus_slice]
         data_burst_data   = data_beat_data ** data_burst_data
