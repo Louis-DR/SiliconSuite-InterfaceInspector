@@ -966,7 +966,7 @@ class HBM2ePageAnnotator(Annotator):
 
     def clear_page_status():
       nonlocal bank_index
-      self.pages_status[bank_index] = [HBM2ePageStatus.UNUSED] * columns_per_row
+      self.pages_status[bank_index] = [HBM2ePageStatus.INACTIVE] * columns_per_row
 
     def clear_all_page_status():
       self.pages_status = [[HBM2ePageStatus.UNUSED] * columns_per_row for bank in range(banks_per_channel)]
