@@ -1374,7 +1374,7 @@ class DDR5PageAnnotator(Annotator):
 
     def clear_page_status():
       nonlocal bank_index
-      self.pages_status[bank_index] = [DDR5PageStatus.UNUSED] * columns_per_row
+      self.pages_status[bank_index] = [DDR5PageStatus.INACTIVE] * columns_per_row
 
     def clear_all_page_status():
       self.pages_status = [[DDR5PageStatus.UNUSED] * columns_per_row for bank in range(banks_per_channel)]
