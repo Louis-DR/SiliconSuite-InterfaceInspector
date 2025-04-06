@@ -732,22 +732,30 @@ class HBM2eInterface(Interface):
       strobe_signal_c.get_at_timestamp(self.CK_C.current_sample.timestamp, move=True)
 
       # Capture the beats of the data burst
-      data_beat_timestamp = None
-      data_beat_data      = None
-      data_beats_data     = []
-      data_beat_even      = True
+      beat_timestamp = None
+      data_beat      = None
+      data_beats     = []
+      even_beat      = True
+
       for beat in range(burst_length):
-        if data_beat_even:
-          data_beat_timestamp = strobe_signal_t.get_edge(value=strobe_bus_reference, comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+
+        # Capture on rising edge of the t or c data strobe
+        if even_beat:
+          beat_timestamp = strobe_signal_t.get_edge(value=strobe_bus_reference, comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
         else:
-          data_beat_timestamp = strobe_signal_c.get_edge(value=strobe_bus_reference, comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
-        data_beat_even = not data_beat_even
-        data_beat_data = self.DQ.get_at_timestamp(data_beat_timestamp, move=True).value[data_bus_slice]
-        data_beat_data = data_beat_data[:len(data_beat_data)//2] ** data_beat_data[len(data_beat_data)//2:]
-        data_beats_data.append(data_beat_data)
+          beat_timestamp = strobe_signal_c.get_edge(value=strobe_bus_reference, comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+        even_beat = not even_beat
+
+        # Read the half of the data bus corresponding to the pseudo-channel
+        data_beat = self.DQ.get_at_timestamp(beat_timestamp, move=True).value[data_bus_slice]
+
+        # Switch the two halves of the data beat
+        data_beat = data_beat[:len(data_beat)//2] ** data_beat[len(data_beat)//2:]
+
+        data_beats.append(data_beat)
 
       # Reorder the data beats
-      data_burst_data = data_beats_data[1] ** data_beats_data[0] ** data_beats_data[3] ** data_beats_data[2]
+      data_burst_data = data_beats[1] ** data_beats[0] ** data_beats[3] ** data_beats[2]
 
       # Set the data of the command
       column_command.data = data_burst_data
