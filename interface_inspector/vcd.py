@@ -73,6 +73,10 @@ class VCDValue:
     value_sliced = self.value[::-1][key][::-1]
     return VCDValue("b"+value_sliced, len(value_sliced))
 
+  def __len__(self) -> int:
+    """ Length is the width of the binary value. """
+    return self.width
+
   def __pow__(self, other:VCDValue) -> VCDValue:
     """ Exponentiation overloaded for concatenation. """
     return VCDValue("b" + self.value + other.value, self.width + other.width)
