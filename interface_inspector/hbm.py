@@ -1032,7 +1032,7 @@ class HBM2ePageAnnotator(Annotator):
         load_page_status()
         fetch_column_index()
         annotation_list[column_index] = symbol_column_do_read
-        # Is the column was in the state written, don't overwrite with read
+        # If the column was in the state written, don't overwrite with read
         if self.pages_status[bank_index][column_index] != HBM2ePageStatus.WRITTEN:
           self.pages_status[bank_index][column_index] = HBM2ePageStatus.READ
 
