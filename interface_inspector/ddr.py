@@ -1156,14 +1156,21 @@ class DDR5BankAnnotator(Annotator):
   """ Display the status and activity of all banks. """
 
   def __init__(self):
+    """ At initialization, all banks are considered inactive and the annotation string is empty. """
     self.banks_active      = [False] * banks_per_channel
     self.annotation_string = " "     * banks_per_channel
 
   def update(self, command:DDR5Command):
+    """ Update the annotator status and string with a command. """
+
+    # Use an annotation list instead of a string to store for each bank the character and optional ANSI format codes
     annotation_list = []
+
+    # Line for activated and inactive banks
     for bank_index in range(banks_per_channel):
       annotation_list.append(symbol_bank_idle if self.banks_active[bank_index] else symbol_bank_inactive)
 
+    # For commands addressing ranks
     chip_select      = None
     chip_id          = None
     rank_address     = None
@@ -1179,6 +1186,7 @@ class DDR5BankAnnotator(Annotator):
       rank_banks_slice = slice( rank_address      * banks_per_chip,
                                (rank_address + 1) * banks_per_chip)
 
+    # For commands addressing banks
     bank_group_address = None
     bank_address       = None
     bank_index         = None
@@ -1190,10 +1198,13 @@ class DDR5BankAnnotator(Annotator):
       bank_address       = command.bank_address.decimal()
       bank_index         = rank_address * banks_per_chip  +  bank_group_address * banks_per_bank_group  +  bank_address
 
+    # For commands addressing banks for all bank groups
     def fetch_only_bank_address():
       nonlocal bank_address
       bank_address = command.bank_address.decimal()
 
+    # Only consider row and column commands that affect the bank status or perform operations on banks.
+    # For each command, fetch the corresponding addresses, update the annotation, and update the bank status.
     match command:
 
       case DDR5Command_Activate():
@@ -1279,9 +1290,11 @@ class DDR5BankAnnotator(Annotator):
       case _:
         pass
 
+    # Convert the annotation list to a single string
     self.annotation_string = "".join(annotation_list)
 
   def __repr__(self):
+    """ Get the current annotation string. """
     return self.annotation_string
 
 
@@ -1300,6 +1313,7 @@ symbol_column_is_written      = Color.WHITE  + '━' + Color.RESET
 column_precharge_color        = Color.GREEN
 
 class DDR5PageStatus(Enum):
+  """ Status for a column of a page. """
   INACTIVE  = 0
   UNUSED    = 1
   READ      = 2
@@ -1309,11 +1323,17 @@ class DDR5PageAnnotator(Annotator):
   """ Display the status and activity of the page accessed. """
 
   def __init__(self):
-    self.annotation_string = " " * columns_per_row
+    """ At initialization, all columns are considered unused and the annotation string is empty. """
     self.pages_status = [[DDR5PageStatus.UNUSED] * columns_per_row for bank in range(banks_per_channel)]
+    self.annotation_string = " " * columns_per_row
 
   def update(self, command:DDR5Command):
+    """ Update the annotator status and string with a command. """
 
+    # Use an annotation list instead of a string to store for each bank the character and optional ANSI format codes
+    annotation_list = [" "] * columns_per_row
+
+    # For commands addressing ranks
     chip_select      = None
     chip_id          = None
     rank_address     = None
@@ -1329,6 +1349,7 @@ class DDR5PageAnnotator(Annotator):
       rank_banks_slice = slice( rank_address      * banks_per_chip,
                                (rank_address + 1) * banks_per_chip)
 
+    # For commands addressing banks
     bank_group_address = None
     bank_address       = None
     bank_index         = None
@@ -1340,10 +1361,12 @@ class DDR5PageAnnotator(Annotator):
       bank_address       = command.bank_address.decimal()
       bank_index         = rank_address * banks_per_chip  +  bank_group_address * banks_per_bank_group  +  bank_address
 
+    # For commands addressing banks for all bank groups
     def fetch_only_bank_address():
       nonlocal bank_address
       bank_address = command.bank_address.decimal()
 
+    # For commands addressing columns
     column_address = None
     column_index   = None
     def fetch_column_index():
@@ -1352,7 +1375,7 @@ class DDR5PageAnnotator(Annotator):
       column_address = command.column_address.decimal()
       column_index   = column_address >> 4
 
-    annotation_list = [" "] * columns_per_row
+    # Load the status of the page of a bank and update the annotation
     def load_page_status():
       nonlocal annotation_list
       annotation_list = []
@@ -1368,22 +1391,27 @@ class DDR5PageAnnotator(Annotator):
           case DDR5PageStatus.WRITTEN:
             annotation_list.append(symbol_column_is_written)
 
+    # Update the page status after an activation (all columns are unused)
     def activate_page_status():
       nonlocal bank_index
       self.pages_status[bank_index] = [DDR5PageStatus.UNUSED] * columns_per_row
 
+    # Clear the page status after a precharge (all columns are inactive)
     def clear_page_status():
       nonlocal bank_index
       self.pages_status[bank_index] = [DDR5PageStatus.INACTIVE] * columns_per_row
 
+    # Clear all page status after a precharge all banks (all columns are inactive)
     def clear_all_page_status():
       self.pages_status = [[DDR5PageStatus.UNUSED] * columns_per_row for bank in range(banks_per_channel)]
 
+    # Clear some page status after a precharge same banks (all columns are inactive)
     def clear_same_bank_page_status():
       for bank_group_index in range(bank_groups_per_chip):
         bank_index = bank_group_index * banks_per_bank_group + bank_address
         self.pages_status[bank_index] = [DDR5PageStatus.UNUSED] * columns_per_row
 
+    # For a precharge, the character for all columns gets a special ANSI formatting
     def apply_precharge_format():
       # Iterate over the symbols of all columns
       for column_index in range(columns_per_row):
@@ -1392,6 +1420,8 @@ class DDR5PageAnnotator(Annotator):
         # Add the color of precharge
         annotation_list[column_index] = column_precharge_color + annotation_list[column_index] + Color.RESET
 
+    # Only consider row and column commands that affect the bank status or perform operations on banks.
+    # For each command, fetch the corresponding addresses, update the annotation, and update the page status.
     match command:
 
       case DDR5Command_Activate():
@@ -1440,6 +1470,7 @@ class DDR5PageAnnotator(Annotator):
         load_page_status()
         fetch_column_index()
         annotation_list[column_index] = symbol_column_do_read
+        # If the column was in the state written, don't overwrite with read
         if self.pages_status[bank_index][column_index] != DDR5PageStatus.WRITTEN:
           self.pages_status[bank_index][column_index] = DDR5PageStatus.READ
 
@@ -1473,9 +1504,11 @@ class DDR5PageAnnotator(Annotator):
       case _:
         pass
 
+    # Convert the annotation list to a single string
     self.annotation_string = "".join(annotation_list)
 
   def __repr__(self):
+    """ Get the current annotation string. """
     return self.annotation_string
 
 
@@ -1491,26 +1524,35 @@ class DDR5DataAnnotator(Annotator):
   """ Display the content of the data bus for reads and writes. """
 
   def __init__(self):
+    """ At initialization, the annotation string is empty. """
     self.annotation_string = " " * data_annotation_width
 
   def update(self, command:DDR5Command):
+    """ Update the annotator string with a command. """
     if type(command) in [DDR5Command_Read,
                          DDR5Command_ReadAutoPrecharge,
                          DDR5Command_Write,
                          DDR5Command_WriteAutoPrecharge]:
+
+      # Use an annotation list instead of a string to store for each bank the character and optional ANSI format codes
       annotation_list = []
 
+      # Separate the burst data into words for easier reading
       for word_index in range(number_words):
         word_value = command.data[ word_index    * word_length :
                                   (word_index+1) * word_length ]
         word_string = word_value.hexadecimal()
+        # Mark zeros with a faint color for easier reading
         word_string = word_string.replace('0', Color.FAINT + '0' + Color.RESET)
         annotation_list.append(word_string)
 
+      # Convert the annotation list to a single string
       self.annotation_string = " ".join(annotation_list)
 
     else:
+      # Empty string for commands without data
       self.annotation_string = " " * data_annotation_width
 
   def __repr__(self):
+    """ Get the current annotation string. """
     return self.annotation_string
