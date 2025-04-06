@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import Enum
 from collections.abc import Generator
 from .vcd import VCDFile, VCDValue
@@ -61,29 +62,60 @@ class APBTransaction:
 
 
 
+@dataclass
+class APBInterfacePaths:
+  """ A set of HBM2e signal paths. """
+  pclock  : str = "pclock"
+  psel    : str = "psel"
+  penable : str = "penable"
+  pready  : str = "pready"
+  paddr   : str = "paddr"
+  pprot   : str = "pprot"
+  pnse    : str = "pnse"
+  pwrite  : str = "pwrite"
+  pstrb   : str = "pstrb"
+  pwdata  : str = "pwdata"
+  prdata  : str = "prdata"
+  pslverr : str = "pslverr"
+
 class APBInterface:
   """ An APB interface with its VCD signals. """
 
   def __init__(self,
                vcd_file  : VCDFile,
-               path      : list[str] = [],
+               signals   : APBInterfacePaths = None,
+               path      : str       = "",
                prefix    : str       = "",
                suffix    : str       = "",
                uppercase : bool      = False):
     """ Get all the signals of the APB bus. """
-    self.pclock  = vcd_file.get_signal( path + [prefix + change_case("pclock", uppercase) + suffix] )
-    self.psel    = vcd_file.get_signal( path + [prefix + change_case("psel",   uppercase) + suffix] )
-    self.penable = vcd_file.get_signal( path + [prefix + change_case("penable",uppercase) + suffix] )
-    self.pready  = vcd_file.get_signal( path + [prefix + change_case("pready", uppercase) + suffix] )
-    self.paddr   = vcd_file.get_signal( path + [prefix + change_case("paddr",  uppercase) + suffix] )
-    self.pprot   = vcd_file.get_signal( path + [prefix + change_case("pprot",  uppercase) + suffix] )
-    self.pnse    = vcd_file.get_signal( path + [prefix + change_case("pnse",   uppercase) + suffix] )
-    self.pwrite  = vcd_file.get_signal( path + [prefix + change_case("pwrite", uppercase) + suffix] )
-    self.pstrb   = vcd_file.get_signal( path + [prefix + change_case("pstrb",  uppercase) + suffix] )
-    self.pwdata  = vcd_file.get_signal( path + [prefix + change_case("pwdata", uppercase) + suffix] )
-    self.prdata  = vcd_file.get_signal( path + [prefix + change_case("prdata", uppercase) + suffix] )
-    self.pslverr = vcd_file.get_signal( path + [prefix + change_case("pslverr",uppercase) + suffix] )
-
+    if signals is None:
+      self.paths   = APBInterface()
+      self.pclock  = vcd_file.get_signal( path + [prefix + change_case("pclock", uppercase) + suffix] )
+      self.psel    = vcd_file.get_signal( path + [prefix + change_case("psel",   uppercase) + suffix] )
+      self.penable = vcd_file.get_signal( path + [prefix + change_case("penable",uppercase) + suffix] )
+      self.pready  = vcd_file.get_signal( path + [prefix + change_case("pready", uppercase) + suffix] )
+      self.paddr   = vcd_file.get_signal( path + [prefix + change_case("paddr",  uppercase) + suffix] )
+      self.pprot   = vcd_file.get_signal( path + [prefix + change_case("pprot",  uppercase) + suffix] )
+      self.pnse    = vcd_file.get_signal( path + [prefix + change_case("pnse",   uppercase) + suffix] )
+      self.pwrite  = vcd_file.get_signal( path + [prefix + change_case("pwrite", uppercase) + suffix] )
+      self.pstrb   = vcd_file.get_signal( path + [prefix + change_case("pstrb",  uppercase) + suffix] )
+      self.pwdata  = vcd_file.get_signal( path + [prefix + change_case("pwdata", uppercase) + suffix] )
+      self.prdata  = vcd_file.get_signal( path + [prefix + change_case("prdata", uppercase) + suffix] )
+      self.pslverr = vcd_file.get_signal( path + [prefix + change_case("pslverr",uppercase) + suffix] )
+    else: self.paths = signals
+    self.pclock  = vcd_file.get_signal( self.paths.pclock  .split('.') )
+    self.psel    = vcd_file.get_signal( self.paths.psel    .split('.') )
+    self.penable = vcd_file.get_signal( self.paths.penable .split('.') )
+    self.pready  = vcd_file.get_signal( self.paths.pready  .split('.') )
+    self.paddr   = vcd_file.get_signal( self.paths.paddr   .split('.') )
+    self.pprot   = vcd_file.get_signal( self.paths.pprot   .split('.') )
+    self.pnse    = vcd_file.get_signal( self.paths.pnse    .split('.') )
+    self.pwrite  = vcd_file.get_signal( self.paths.pwrite  .split('.') )
+    self.pstrb   = vcd_file.get_signal( self.paths.pstrb   .split('.') )
+    self.pwdata  = vcd_file.get_signal( self.paths.pwdata  .split('.') )
+    self.prdata  = vcd_file.get_signal( self.paths.prdata  .split('.') )
+    self.pslverr = vcd_file.get_signal( self.paths.pslverr .split('.') )
 
 
 
