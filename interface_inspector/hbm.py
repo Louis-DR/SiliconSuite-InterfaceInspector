@@ -21,6 +21,7 @@ write_latency  = 10
 read_latency   = 35
 burst_length   = 4
 data_bus_width = 64
+data_width     = data_bus_width * burst_length
 
 class HBM2eCommand(Command):
   """ HBM2e command base type. """
@@ -1046,7 +1047,6 @@ class HBM2ePageAnnotator(Annotator):
 
 
 
-data_width            = data_bus_width * burst_length
 word_length           = 32
 number_words          = data_width // 32
 data_annotation_width = data_width + number_words
