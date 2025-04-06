@@ -804,14 +804,21 @@ class HBM2eBankAnnotator(Annotator):
   """ Display the status and activity of all banks. """
 
   def __init__(self):
+    """ At initialization, all banks are considered inactive and the annotation string is empty. """
     self.banks_active      = [False] * banks_per_channel
     self.annotation_string = " "     * banks_per_channel
 
   def update(self, command:HBM2eCommand):
+    """ Update the annotator status and string with a command. """
+
+    # Use an annotation list instead of a string to store for each bank the character and optional ANSI format codes
     annotation_list = []
+
+    # Line for activated and inactive banks
     for bank_index in range(banks_per_channel):
       annotation_list.append(symbol_bank_idle if self.banks_active[bank_index] else symbol_bank_inactive)
 
+    # For commands addressing pseudo-channels
     pseudo_channel = None
     pseudo_channel_banks_slice = None
     def fetch_pseudo_channel():
@@ -821,6 +828,7 @@ class HBM2eBankAnnotator(Annotator):
       pseudo_channel_banks_slice = slice( pseudo_channel      * banks_per_pseudo_channel,
                                          (pseudo_channel + 1) * banks_per_pseudo_channel)
 
+    # For commands addressing banks
     stack_id     = None
     bank_address = None
     bank_index   = None
@@ -832,6 +840,8 @@ class HBM2eBankAnnotator(Annotator):
       bank_address = command.bank_address.decimal()
       bank_index   = pseudo_channel * banks_per_pseudo_channel  +  stack_id * banks_per_stack  +  bank_address
 
+    # Only consider row and column commands that affect the bank status or perform operations on banks.
+    # For each command, fetch the corresponding addresses, update the annotation, and update the bank status.
     match command:
 
       case HBM2eRowCommand_Activate():
@@ -885,9 +895,11 @@ class HBM2eBankAnnotator(Annotator):
       case _:
         pass
 
+    # Convert the annotation list to a single string
     self.annotation_string = "".join(annotation_list)
 
   def __repr__(self):
+    """ Get the current annotation string. """
     return self.annotation_string
 
 
@@ -906,6 +918,7 @@ symbol_column_is_written      = Color.WHITE  + '━' + Color.RESET
 column_precharge_color        = Color.GREEN
 
 class HBM2ePageStatus(Enum):
+  """ Status for a column of a page. """
   INACTIVE  = 0
   UNUSED    = 1
   READ      = 2
@@ -915,16 +928,23 @@ class HBM2ePageAnnotator(Annotator):
   """ Display the status and activity of the page accessed. """
 
   def __init__(self):
-    self.annotation_string = " " * columns_per_row
+    """ At initialization, all columns are considered unused and the annotation string is empty. """
     self.pages_status = [[HBM2ePageStatus.UNUSED] * columns_per_row for bank in range(banks_per_channel)]
+    self.annotation_string = " " * columns_per_row
 
   def update(self, command:HBM2eCommand):
+    """ Update the annotator status and string with a command. """
 
+    # Use an annotation list instead of a string to store for each bank the character and optional ANSI format codes
+    annotation_list = [" "] * columns_per_row
+
+    # For commands addressing pseudo-channels
     pseudo_channel = None
     def fetch_pseudo_channel():
       nonlocal pseudo_channel
       pseudo_channel = command.pseudo_channel.decimal()
 
+    # For commands addressing banks
     stack_id     = None
     bank_address = None
     bank_index   = None
@@ -936,6 +956,7 @@ class HBM2ePageAnnotator(Annotator):
       bank_address = command.bank_address.decimal()
       bank_index   = pseudo_channel * banks_per_pseudo_channel  +  stack_id * banks_per_stack  +  bank_address
 
+    # For commands addressing columns
     column_address = None
     column_index   = None
     def fetch_column_index():
@@ -944,7 +965,7 @@ class HBM2ePageAnnotator(Annotator):
       column_address = command.column_address.decimal()
       column_index   = column_address // 2
 
-    annotation_list = [" "] * columns_per_row
+    # Load the status of the page of a bank and update the annotation
     def load_page_status():
       nonlocal annotation_list
       annotation_list = []
@@ -960,17 +981,21 @@ class HBM2ePageAnnotator(Annotator):
           case HBM2ePageStatus.WRITTEN:
             annotation_list.append(symbol_column_is_written)
 
+    # Update the page status after an activation (all columns are unused)
     def activate_page_status():
       nonlocal bank_index
       self.pages_status[bank_index] = [HBM2ePageStatus.UNUSED] * columns_per_row
 
+    # Clear the page status after a precharge (all columns are inactive)
     def clear_page_status():
       nonlocal bank_index
       self.pages_status[bank_index] = [HBM2ePageStatus.INACTIVE] * columns_per_row
 
+    # Clear all page status after a precharge all banks (all columns are inactive)
     def clear_all_page_status():
       self.pages_status = [[HBM2ePageStatus.UNUSED] * columns_per_row for bank in range(banks_per_channel)]
 
+    # For a precharge, the character for all columns gets a special ANSI formatting
     def apply_precharge_format():
       # Iterate over the symbols of all columns
       for column_index in range(columns_per_row):
@@ -979,6 +1004,8 @@ class HBM2ePageAnnotator(Annotator):
         # Add the color of precharge
         annotation_list[column_index] = column_precharge_color + annotation_list[column_index] + Color.RESET
 
+    # Only consider row and column commands that affect the bank status or perform operations on banks.
+    # For each command, fetch the corresponding addresses, update the annotation, and update the page status.
     match command:
 
       case HBM2eRowCommand_Activate():
@@ -1005,6 +1032,7 @@ class HBM2ePageAnnotator(Annotator):
         load_page_status()
         fetch_column_index()
         annotation_list[column_index] = symbol_column_do_read
+        # Is the column was in the state written, don't overwrite with read
         if self.pages_status[bank_index][column_index] != HBM2ePageStatus.WRITTEN:
           self.pages_status[bank_index][column_index] = HBM2ePageStatus.READ
 
@@ -1037,9 +1065,11 @@ class HBM2ePageAnnotator(Annotator):
       case _:
         pass
 
+    # Convert the annotation list to a single string
     self.annotation_string = "".join(annotation_list)
 
   def __repr__(self):
+    """ Get the current annotation string. """
     return self.annotation_string
 
 
@@ -1055,26 +1085,37 @@ class HBM2eDataAnnotator(Annotator):
   """ Display the content of the data bus for reads and writes. """
 
   def __init__(self):
+    """ At initialization, the annotation string is empty. """
     self.annotation_string = " " * data_annotation_width
 
   def update(self, command:HBM2eCommand):
+    """ Update the annotator string with a command. """
+
+    # Only reads and writes have data
     if type(command) in [HBM2eColumnCommand_Read,
                          HBM2eColumnCommand_ReadAutoPrecharge,
                          HBM2eColumnCommand_Write,
                          HBM2eColumnCommand_WriteAutoPrecharge]:
+
+      # Use an annotation list instead of a string to store for each bank the character and optional ANSI format codes
       annotation_list = []
 
+      # Separate the burst data into words for easier reading
       for word_index in range(number_words):
         word_value = command.data[ word_index    * word_length :
                                   (word_index+1) * word_length ]
         word_string = word_value.hexadecimal()
+        # Mark zeros with a faint color for easier reading
         word_string = word_string.replace('0', Color.FAINT + '0' + Color.RESET)
         annotation_list.append(word_string)
 
+      # Convert the annotation list to a single string
       self.annotation_string = " ".join(annotation_list)
 
     else:
+      # Empty string for commands without data
       self.annotation_string = " " * data_annotation_width
 
   def __repr__(self):
+    """ Get the current annotation string. """
     return self.annotation_string
