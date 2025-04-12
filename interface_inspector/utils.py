@@ -1,13 +1,26 @@
-from typing import Dict, Generator, Callable
 import re
 import heapq
 import subprocess
+
+from typing import (
+  Dict,
+  Generator,
+  Callable,
+)
+
 from .packet import Packet
 from .annotator import Annotator
+
+
+
+
+
 
 def change_case(string:str, upper:bool) -> str:
   if upper: return string.upper()
   else:     return string.lower()
+
+
 
 class Color:
   """ Helper class with ANSI color codes. """
@@ -44,6 +57,8 @@ class Color:
 def remove_colors(string:str) -> str:
   """ Remove ANSI color codes from a string. """
   return re.sub(r'\x1b\[[0-9;]*m', '', string)
+
+
 
 def packet_string(timestamp:       int               = 0,
                   command:         str               = "NOP",
@@ -93,6 +108,8 @@ def packet_string(timestamp:       int               = 0,
 
   return string
 
+
+
 def merge_packet_generators(*packet_generators : Generator[Packet, None, None], key : Callable[[Packet], int] = lambda command: command.timestamp) -> Generator[Packet, None, None]:
   yield from heapq.merge(*packet_generators, key=key)
 
@@ -101,6 +118,8 @@ def packet_and_annotator_generator(packet_generator:Generator[Packet, None, None
     for annotator in annotators:
       annotator.update(packet)
     yield repr(packet) + "  " + " ".join(repr(annotator) for annotator in annotators)
+
+
 
 def display_packets_with_pager(packet_generator:Generator[Packet|str, None, None]) -> None:
   """ Display packets in a scrollable shell pager. """

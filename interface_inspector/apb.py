@@ -1,9 +1,19 @@
 from dataclasses import dataclass
-from enum import Enum
-from collections.abc import Generator
-from .vcd import VCDFile, VCDValue
-from .utils import change_case, packet_string, Color
-from .packet import Packet
+from enum        import Enum
+from typing      import Generator
+
+from .vcd import (
+  VCDFile,
+  VCDValue,
+)
+
+from .utils import (
+  change_case,
+  packet_string,
+  Color,
+)
+
+from .packet    import Packet
 from .interface import Interface
 
 

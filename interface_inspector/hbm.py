@@ -1,9 +1,22 @@
 from dataclasses import dataclass
-from enum import Enum
-from typing import Generator
-from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
-from .utils import change_case, packet_string, Color, remove_colors
-from .packet import Packet
+from enum        import Enum
+from typing      import Generator
+
+from .vcd import (
+  VCDFile,
+  VCDValue,
+  ComparisonOperation,
+  EdgePolarity,
+)
+
+from .utils import (
+  change_case,
+  packet_string,
+  Color,
+  remove_colors,
+)
+
+from .packet    import Packet
 from .interface import Interface
 from .annotator import Annotator
 

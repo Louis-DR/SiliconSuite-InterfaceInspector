@@ -1,7 +1,10 @@
 from __future__ import annotations
 from enum import Enum
 from bisect import bisect_right
-from pyDigitalWaveTools.vcd.parser import VcdParser, VcdVarScope
+from pyDigitalWaveTools.vcd.parser import (
+  VcdParser,
+  VcdVarScope,
+)
 
 
 
