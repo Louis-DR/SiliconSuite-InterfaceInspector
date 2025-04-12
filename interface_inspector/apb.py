@@ -84,25 +84,25 @@ class APBInterface:
   def __init__(self,
                vcd_file  : VCDFile,
                signals   : APBInterfacePaths = None,
-               path      : str       = "",
-               prefix    : str       = "",
-               suffix    : str       = "",
-               uppercase : bool      = False):
+               path      : str               = "",
+               prefix    : str               = "",
+               suffix    : str               = "",
+               uppercase : bool              = False):
     """ Get all the signals of the APB bus. """
     if signals is None:
-      self.paths   = APBInterface()
-      self.pclock  = vcd_file.get_signal( path + [prefix + change_case("pclock", uppercase) + suffix] )
-      self.psel    = vcd_file.get_signal( path + [prefix + change_case("psel",   uppercase) + suffix] )
-      self.penable = vcd_file.get_signal( path + [prefix + change_case("penable",uppercase) + suffix] )
-      self.pready  = vcd_file.get_signal( path + [prefix + change_case("pready", uppercase) + suffix] )
-      self.paddr   = vcd_file.get_signal( path + [prefix + change_case("paddr",  uppercase) + suffix] )
-      self.pprot   = vcd_file.get_signal( path + [prefix + change_case("pprot",  uppercase) + suffix] )
-      self.pnse    = vcd_file.get_signal( path + [prefix + change_case("pnse",   uppercase) + suffix] )
-      self.pwrite  = vcd_file.get_signal( path + [prefix + change_case("pwrite", uppercase) + suffix] )
-      self.pstrb   = vcd_file.get_signal( path + [prefix + change_case("pstrb",  uppercase) + suffix] )
-      self.pwdata  = vcd_file.get_signal( path + [prefix + change_case("pwdata", uppercase) + suffix] )
-      self.prdata  = vcd_file.get_signal( path + [prefix + change_case("prdata", uppercase) + suffix] )
-      self.pslverr = vcd_file.get_signal( path + [prefix + change_case("pslverr",uppercase) + suffix] )
+      self.paths   = APBInterfacePaths()
+      self.pclock  = f"{path}.{prefix}{change_case('pclock',  uppercase)}{suffix}"
+      self.psel    = f"{path}.{prefix}{change_case('psel',    uppercase)}{suffix}"
+      self.penable = f"{path}.{prefix}{change_case('penable', uppercase)}{suffix}"
+      self.pready  = f"{path}.{prefix}{change_case('pready',  uppercase)}{suffix}"
+      self.paddr   = f"{path}.{prefix}{change_case('paddr',   uppercase)}{suffix}"
+      self.pprot   = f"{path}.{prefix}{change_case('pprot',   uppercase)}{suffix}"
+      self.pnse    = f"{path}.{prefix}{change_case('pnse',    uppercase)}{suffix}"
+      self.pwrite  = f"{path}.{prefix}{change_case('pwrite',  uppercase)}{suffix}"
+      self.pstrb   = f"{path}.{prefix}{change_case('pstrb',   uppercase)}{suffix}"
+      self.pwdata  = f"{path}.{prefix}{change_case('pwdata',  uppercase)}{suffix}"
+      self.prdata  = f"{path}.{prefix}{change_case('prdata',  uppercase)}{suffix}"
+      self.pslverr = f"{path}.{prefix}{change_case('pslverr', uppercase)}{suffix}"
     else: self.paths = signals
     self.pclock  = vcd_file.get_signal( self.paths.pclock  .split('.') )
     self.psel    = vcd_file.get_signal( self.paths.psel    .split('.') )
