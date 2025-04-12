@@ -2,12 +2,18 @@ from dataclasses import dataclass
 from enum import Enum
 from collections.abc import Generator
 from .vcd import VCDFile, VCDValue
-from .utils import change_case
+from .utils import change_case, command_str, Color
 
 
 
 
 
+
+timestamp_width = 5
+command_width   = 5
+context_width   = 0
+value_width     = 2
+line_width      = 48
 
 class APBOperation(Enum):
   """ Type of APB operation. """
@@ -53,9 +59,31 @@ class APBTransaction:
 
 
 
-  def __str__(self) -> str:
+  def __repr__(self) -> str:
     """ Display the useful information of the transaction. """
-    return f"[ {self.timestamp_request} - {self.timestamp_response} ] [APB] {self.operation} @{self.paddr}"
+    parameters = {}
+    parameters["ADDR "] = self.paddr.hexadecimal()
+    color = None
+    match self.operation:
+      case APBOperation.READ:
+        color = Color.BG_YELLOW
+        parameters["DATA "] = self.prdata.hexadecimal()
+      case APBOperation.WRITE:
+        color = Color.BG_CYAN
+        parameters["DATA "] = self.pwdata.hexadecimal()
+      case APBOperation.XZ:
+        color = Color.BG_BLACK + Color.RED + Color.BLINK
+    return command_str(
+      timestamp       = self.timestamp_request,
+      command         = str(self.operation),
+      parameters      = parameters,
+      color           = color,
+      timestamp_width = timestamp_width,
+      command_width   = command_width,
+      context_width   = context_width,
+      value_width     = value_width,
+      line_width      = line_width
+    )
 
 
 
