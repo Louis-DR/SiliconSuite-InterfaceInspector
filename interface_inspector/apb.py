@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from collections.abc import Generator
 from .vcd import VCDFile, VCDValue
-from .utils import change_case, command_str, Color
-from .command import Command
+from .utils import change_case, packet_string, Color
+from .packet import Packet
 from .interface import Interface
 
 
@@ -27,7 +27,7 @@ class APBOperation(Enum):
 
 
 
-class APBTransaction(Command):
+class APBTransaction(Packet):
   """ An APB read or write transaction. """
 
   def __init__(self,
@@ -41,7 +41,7 @@ class APBTransaction(Command):
                pwdata             : VCDValue,
                prdata             : VCDValue,
                pslverr            : VCDValue):
-    """ Transaction with timestamps and signal values. """
+    """ Packet with timestamps and signal values. """
     self.timestamp_request  = timestamp_request
     self.timestamp_response = timestamp_response
     self.paddr   = paddr
@@ -75,7 +75,7 @@ class APBTransaction(Command):
         parameters["DATA "] = self.pwdata.hexadecimal()
       case APBOperation.XZ:
         color = Color.BG_BLACK + Color.RED + Color.BLINK
-    return command_str(
+    return packet_string(
       timestamp       = self.timestamp_request,
       command         = str(self.operation),
       parameters      = parameters,

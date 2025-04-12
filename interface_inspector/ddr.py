@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Generator
 from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
-from .utils import change_case, command_str, Color, remove_colors
-from .command import Command
+from .utils import change_case, packet_string, Color, remove_colors
+from .packet import Packet
 from .interface import Interface
 from .annotator import Annotator
 
@@ -34,7 +34,7 @@ if enable_cid:
 if enable_extras:
   line_width += 11
 
-class DDR5Command(Command):
+class DDR5Command(Packet):
   """ DDR5 command base type. """
   def __str__(self):
     return self.__repr__()
@@ -48,7 +48,7 @@ class DDR5Command_Error(DDR5Command):
     self.chip_select = chip_select
   def __repr__(self):
     parameters = {}
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "ERROR",
       parameters = parameters,
@@ -81,7 +81,7 @@ class DDR5Command_Activate(DDR5Command):
     parameters["BG"] = self.bank_group_address .decimal()
     parameters["BA"] = self.bank_address       .decimal()
     parameters["R"]  = self.row_address        .decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "ACT",
       parameters = parameters,
@@ -114,7 +114,7 @@ class DDR5Command_WritePattern(DDR5Command):
     parameters["BG"] = self.bank_group_address .decimal()
     parameters["BA"] = self.bank_address       .decimal()
     parameters["C"]  = self.column_address     .decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "WRP",
       parameters = parameters,
@@ -147,7 +147,7 @@ class DDR5Command_WritePatternAutoPrecharge(DDR5Command):
     parameters["BG"] = self.bank_group_address .decimal()
     parameters["BA"] = self.bank_address       .decimal()
     parameters["C"]  = self.column_address     .decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "WRPA",
       parameters = parameters,
@@ -177,7 +177,7 @@ class DDR5Command_ModeRegisterWrite(DDR5Command):
     parameters["MRA"] = self.mode_register .decimal()
     parameters["OP"]  = self.operation     .decimal()
     parameters["CW"]  = self.control_word  .decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "MRW",
       parameters = parameters,
@@ -204,7 +204,7 @@ class DDR5Command_ModeRegisterRead(DDR5Command):
     parameters = {}
     parameters["MRA"] = self.mode_register .decimal()
     parameters["CW"]  = self.control_word  .decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "MRR",
       parameters = parameters,
@@ -245,7 +245,7 @@ class DDR5Command_Write(DDR5Command):
     if enable_extras:
       parameters["BL"]  = self.burst_length    .decimal()
       parameters["WRP"] = self.partial_write   .decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "WR",
       parameters = parameters,
@@ -286,7 +286,7 @@ class DDR5Command_WriteAutoPrecharge(DDR5Command):
     if enable_extras:
       parameters["BL"]  = self.burst_length    .decimal()
       parameters["WRP"] = self.partial_write   .decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "WRA",
       parameters = parameters,
@@ -324,7 +324,7 @@ class DDR5Command_Read(DDR5Command):
     parameters["C"]  = self.column_address     .decimal()
     if enable_extras:
       parameters["BL"] = self.burst_length     .decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "RD",
       parameters = parameters,
@@ -362,7 +362,7 @@ class DDR5Command_ReadAutoPrecharge(DDR5Command):
     parameters["C"]  = self.column_address     .decimal()
     if enable_extras:
       parameters["BL"] = self.burst_length     .decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "RDA",
       parameters = parameters,
@@ -386,7 +386,7 @@ class DDR5Command_VrefCA(DDR5Command):
   def __repr__(self):
     parameters = {}
     parameters["OP"] = self.operation.decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "VrefCA",
       parameters = parameters,
@@ -410,7 +410,7 @@ class DDR5Command_VrefCS(DDR5Command):
   def __repr__(self):
     parameters = {}
     parameters["OP"] = self.operation.decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "VrefCS",
       parameters = parameters,
@@ -437,7 +437,7 @@ class DDR5Command_RefreshAll(DDR5Command):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
     parameters["RIR"] = self.refresh_interval_rate .decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "REFab",
       parameters = parameters,
@@ -461,7 +461,7 @@ class DDR5Command_RefreshManagementAll(DDR5Command):
   def __repr__(self):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "RFMab",
       parameters = parameters,
@@ -492,7 +492,7 @@ class DDR5Command_RefreshSameBank(DDR5Command):
     parameters["BA"] = self.bank_address.decimal()
     if enable_extras:
       parameters["RIR"] = self.refresh_interval_rate.decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "REFsb",
       parameters = parameters,
@@ -519,7 +519,7 @@ class DDR5Command_RefreshManagementSameBank(DDR5Command):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
     parameters["BA"] = self.bank_address.decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "RFMsb",
       parameters = parameters,
@@ -543,7 +543,7 @@ class DDR5Command_PrechargeAll(DDR5Command):
   def __repr__(self):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "PREab",
       parameters = parameters,
@@ -570,7 +570,7 @@ class DDR5Command_PrechargeSameBank(DDR5Command):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
     parameters["BA"] = self.bank_address.decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "PREab",
       parameters = parameters,
@@ -600,7 +600,7 @@ class DDR5Command_Precharge(DDR5Command):
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
     parameters["BG"] = self.bank_group_address .decimal()
     parameters["BA"] = self.bank_address       .decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "PREpb",
       parameters = parameters,
@@ -621,7 +621,7 @@ class DDR5Command_SelfRefreshEntry(DDR5Command):
     self.chip_select = chip_select
   def __repr__(self):
     parameters = {}
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "SRE",
       parameters = parameters,
@@ -642,7 +642,7 @@ class DDR5Command_SelfRefreshEntryWithFrequencyChange(DDR5Command):
     self.chip_select = chip_select
   def __repr__(self):
     parameters = {}
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "SREF",
       parameters = parameters,
@@ -666,7 +666,7 @@ class DDR5Command_PowerDownEntry(DDR5Command):
   def __repr__(self):
     parameters = {}
     parameters["ODT"] = self.on_die_termination.decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "PDE",
       parameters = parameters,
@@ -690,7 +690,7 @@ class DDR5Command_MultiPurposeCommand(DDR5Command):
   def __repr__(self):
     parameters = {}
     parameters["OP"] = self.operation.decimal()
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "MPC",
       parameters = parameters,
@@ -721,6 +721,7 @@ class DDR5InterfacePaths:
 
 class DDR5Interface(Interface):
   """ A DDR5 interface with its VCD signals. """
+
   def __init__(self,
                vcd_file  : VCDFile,
                signals   : DDR5InterfacePaths = None,

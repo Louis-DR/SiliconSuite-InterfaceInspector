@@ -2,7 +2,7 @@ from typing import Dict, Generator, Callable
 import re
 import heapq
 import subprocess
-from .command import Command
+from .packet import Packet
 from .annotator import Annotator
 
 def change_case(string:str, upper:bool) -> str:
@@ -45,18 +45,18 @@ def remove_colors(string:str) -> str:
   """ Remove ANSI color codes from a string. """
   return re.sub(r'\x1b\[[0-9;]*m', '', string)
 
-def command_str(timestamp:       int               = 0,
-                command:         str               = "NOP",
-                parameters:      Dict[str,str|int] = {},
-                context:         str               = None,
-                color:           Color|str         = None,
-                timestamp_width: int               = 0,
-                context_width:   int               = 0,
-                command_width:   int               = 5,
-                value_width:     int               = 2,
-                line_width:      int               = 50
-                ) -> str:
-  """ Display a command with colors and more. """
+def packet_string(timestamp:       int               = 0,
+                  command:         str               = "NOP",
+                  parameters:      Dict[str,str|int] = {},
+                  context:         str               = None,
+                  color:           Color|str         = None,
+                  timestamp_width: int               = 0,
+                  context_width:   int               = 0,
+                  command_width:   int               = 5,
+                  value_width:     int               = 2,
+                  line_width:      int               = 50
+                  ) -> str:
+  """ Display a packet with colors and more. """
 
   string = ""
 
@@ -93,21 +93,21 @@ def command_str(timestamp:       int               = 0,
 
   return string
 
-def merge_command_generators(*command_generators : Generator[Command, None, None], key : Callable[[Command], int] = lambda command: command.timestamp) -> Generator[Command, None, None]:
-  yield from heapq.merge(*command_generators, key=key)
+def merge_packet_generators(*packet_generators : Generator[Packet, None, None], key : Callable[[Packet], int] = lambda command: command.timestamp) -> Generator[Packet, None, None]:
+  yield from heapq.merge(*packet_generators, key=key)
 
-def command_and_annotator_generator(command_generator:Generator[Command, None, None], *annotators:Annotator) -> Generator[str, None, None]:
-  for command in command_generator:
+def packet_and_annotator_generator(packet_generator:Generator[Packet, None, None], *annotators:Annotator) -> Generator[str, None, None]:
+  for packet in packet_generator:
     for annotator in annotators:
-      annotator.update(command)
-    yield repr(command) + "  " + " ".join(repr(annotator) for annotator in annotators)
+      annotator.update(packet)
+    yield repr(packet) + "  " + " ".join(repr(annotator) for annotator in annotators)
 
-def display_commands_with_pager(command_generator:Generator[Command|str, None, None]) -> None:
-  """ Display commands in a scrollable shell pager. """
+def display_packets_with_pager(packet_generator:Generator[Packet|str, None, None]) -> None:
+  """ Display packets in a scrollable shell pager. """
   pager = subprocess.Popen(['less', '-R', '-S', '-#', '8'], stdin=subprocess.PIPE, text=True)
   try:
-    for command in command_generator:
-      pager.stdin.write(str(command)+'\n')
+    for packet in packet_generator:
+      pager.stdin.write(str(packet)+'\n')
       pager.stdin.flush()
     pager.stdin.close()
     pager.wait()

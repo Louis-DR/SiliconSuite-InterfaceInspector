@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Generator
 from .vcd import VCDFile, VCDValue, ComparisonOperation, EdgePolarity
-from .utils import change_case, command_str, Color, remove_colors
-from .command import Command
+from .utils import change_case, packet_string, Color, remove_colors
+from .packet import Packet
 from .interface import Interface
 from .annotator import Annotator
 
@@ -23,7 +23,7 @@ burst_length   = 4
 data_bus_width = 64
 data_width     = data_bus_width * burst_length
 
-class HBM2eCommand(Command):
+class HBM2eCommand(Packet):
   """ HBM2e command base type. """
 
 class HBM2eRowCommand(HBM2eCommand):
@@ -34,7 +34,7 @@ class HBM2eRowCommand_Error(HBM2eRowCommand):
   def __init__(self, timestamp:int):
     self.timestamp = timestamp
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "ERROR",
       parameters = {},
@@ -62,7 +62,7 @@ class HBM2eRowCommand_Activate(HBM2eRowCommand):
     self.bank_address   = bank_address
     self.row_address    = row_address
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "ACT",
       parameters = {"PS":  self.pseudo_channel .decimal(),
@@ -91,7 +91,7 @@ class HBM2eRowCommand_Precharge(HBM2eRowCommand):
     self.stack_id       = stack_id
     self.bank_address   = bank_address
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "PRE",
       parameters = {"PS":  self.pseudo_channel .decimal(),
@@ -115,7 +115,7 @@ class HBM2eRowCommand_PrechargeAll(HBM2eRowCommand):
     self.parity         = parity
     self.pseudo_channel = pseudo_channel
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "PREA",
       parameters = {"PS": self.pseudo_channel.decimal()},
@@ -141,7 +141,7 @@ class HBM2eRowCommand_SingleBankRefresh(HBM2eRowCommand):
     self.stack_id       = stack_id
     self.bank_address   = bank_address
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "REFSB",
       parameters = {"PS":  self.pseudo_channel .decimal(),
@@ -165,7 +165,7 @@ class HBM2eRowCommand_Refresh(HBM2eRowCommand):
     self.parity         = parity
     self.pseudo_channel = pseudo_channel
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "REF",
       parameters = {"PS": self.pseudo_channel.decimal()},
@@ -185,7 +185,7 @@ class HBM2eRowCommand_PowerDownEntry(HBM2eRowCommand):
     self.timestamp = timestamp
     self.parity    = parity
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "PDE",
       parameters = {},
@@ -205,7 +205,7 @@ class HBM2eRowCommand_SelfRefreshEntry(HBM2eRowCommand):
     self.timestamp = timestamp
     self.parity    = parity
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "SRE",
       parameters = {},
@@ -222,7 +222,7 @@ class HBM2eRowCommand_PowerDownSelfRefreshExit(HBM2eRowCommand):
   def __init__(self, timestamp:int):
     self.timestamp = timestamp
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "PDX/SRX",
       parameters = {},
@@ -248,7 +248,7 @@ class HBM2eColumnCommand_Error(HBM2eColumnCommand):
   def __init__(self, timestamp:int):
     self.timestamp = timestamp
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "ERROR",
       parameters = {},
@@ -277,7 +277,7 @@ class HBM2eColumnCommand_Read(HBM2eColumnCommand):
     self.column_address = column_address
     self.data           = None
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "RD",
       parameters = {"PS":  self.pseudo_channel .decimal(),
@@ -309,7 +309,7 @@ class HBM2eColumnCommand_ReadAutoPrecharge(HBM2eColumnCommand):
     self.column_address = column_address
     self.data           = None
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "RDA",
       parameters = {"PS":  self.pseudo_channel .decimal(),
@@ -341,7 +341,7 @@ class HBM2eColumnCommand_Write(HBM2eColumnCommand):
     self.column_address = column_address
     self.data           = None
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "WR",
       parameters = {"PS":  self.pseudo_channel .decimal(),
@@ -373,7 +373,7 @@ class HBM2eColumnCommand_WriteAutoPrecharge(HBM2eColumnCommand):
     self.column_address = column_address
     self.data           = None
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "WRA",
       parameters = {"PS":  self.pseudo_channel .decimal(),
@@ -400,7 +400,7 @@ class HBM2eColumnCommand_ModeRegisterSet(HBM2eColumnCommand):
     self.mode_register = mode_register
     self.operation     = operation
   def __repr__(self):
-    return command_str(
+    return packet_string(
       timestamp  = self.timestamp,
       command    = "MRS",
       parameters = {"MR": self.mode_register .decimal(),
@@ -432,6 +432,7 @@ class HBM2eInterfacePaths:
 
 class HBM2eInterface(Interface):
   """ An HBM2e interface with its VCD signals. """
+
   def __init__(self,
                vcd_file  : VCDFile,
                signals   : HBM2eInterfacePaths = None,
