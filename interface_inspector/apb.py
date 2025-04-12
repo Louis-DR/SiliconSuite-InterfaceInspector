@@ -3,6 +3,8 @@ from enum import Enum
 from collections.abc import Generator
 from .vcd import VCDFile, VCDValue
 from .utils import change_case, command_str, Color
+from .command import Command
+from .interface import Interface
 
 
 
@@ -25,7 +27,7 @@ class APBOperation(Enum):
 
 
 
-class APBTransaction:
+class APBTransaction(Command):
   """ An APB read or write transaction. """
 
   def __init__(self,
@@ -106,7 +108,7 @@ class APBInterfacePaths:
   prdata  : str = "prdata"
   pslverr : str = "pslverr"
 
-class APBInterface:
+class APBInterface(Interface):
   """ An APB interface with its VCD signals. """
 
   def __init__(self,
