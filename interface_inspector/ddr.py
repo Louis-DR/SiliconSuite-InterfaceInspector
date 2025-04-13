@@ -1109,40 +1109,20 @@ class DDR5Interface(Interface):
 
       # Capture the beats of the data burst
       beat_timestamp = None
-      data_beat      = None
-      data_beats     = []
       even_beat      = True
+      data_beat      = None
+      data_burst     = VCDValue("",0)
       for beat in range(ddr5_burst_length):
         if even_beat:
-          beat_timestamp = self.DQS_T.get_edge(value=VCDValue("b1111",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+          beat_timestamp = self.DQS_T.get_edge(value=VCDValue("b1111",4), move=True).timestamp
         else:
-          beat_timestamp = self.DQS_C.get_edge(value=VCDValue("b1111",4), comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+          beat_timestamp = self.DQS_C.get_edge(value=VCDValue("b1111",4), move=True).timestamp
         even_beat    = not even_beat
         data_beat    = self.DQ.get_at_timestamp(beat_timestamp, move=True).value
-        data_beats.append(data_beat)
-
-      # Reorder the data beats
-      data_burst_data = (
-           data_beats[ 1]
-        ** data_beats[ 0]
-        ** data_beats[ 3]
-        ** data_beats[ 2]
-        ** data_beats[ 5]
-        ** data_beats[ 4]
-        ** data_beats[ 7]
-        ** data_beats[ 6]
-        ** data_beats[ 9]
-        ** data_beats[ 8]
-        ** data_beats[11]
-        ** data_beats[10]
-        ** data_beats[13]
-        ** data_beats[12]
-        ** data_beats[15]
-        ** data_beats[14]
-      )
+        data_burst **= data_beat
 
       # Set the data of the command
-      command.data = data_burst_data
+      command.data = data_burst
 
     return command
 
