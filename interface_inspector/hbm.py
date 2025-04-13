@@ -748,17 +748,16 @@ class HBM2eInterface(Interface):
 
       # Capture the beats of the data burst
       beat_timestamp = None
-      data_beat      = None
-      data_beats     = []
       even_beat      = True
-
+      data_beat      = None
+      data_burst     = VCDValue("",0)
       for beat in range(burst_length):
 
         # Capture on rising edge of the t or c data strobe
         if even_beat:
-          beat_timestamp = strobe_signal_t.get_edge(value=strobe_bus_reference, comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+          beat_timestamp = strobe_signal_t.get_edge(value=strobe_bus_reference, move=True).timestamp
         else:
-          beat_timestamp = strobe_signal_c.get_edge(value=strobe_bus_reference, comparison=ComparisonOperation.NOT_EQUAL_NO_XY, move=True).timestamp
+          beat_timestamp = strobe_signal_c.get_edge(value=strobe_bus_reference, move=True).timestamp
         even_beat = not even_beat
 
         # Read the half of the data bus corresponding to the pseudo-channel
@@ -767,13 +766,11 @@ class HBM2eInterface(Interface):
         # Switch the two halves of the data beat
         data_beat = data_beat[:len(data_beat)//2] ** data_beat[len(data_beat)//2:]
 
-        data_beats.append(data_beat)
-
-      # Reorder the data beats
-      data_burst_data = data_beats[1] ** data_beats[0] ** data_beats[3] ** data_beats[2]
+        # Append the data to the burst
+        data_burst **= data_beat
 
       # Set the data of the command
-      column_command.data = data_burst_data
+      column_command.data = data_burst
 
     return column_command
 
