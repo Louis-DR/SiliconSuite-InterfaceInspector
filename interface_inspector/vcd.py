@@ -103,6 +103,12 @@ class VCDValue:
     """ Left shift. """
     return VCDValue("b" + self.value + other*"0", self.width + other)
 
+  def __invert__(self) -> VCDValue:
+    """ Binary inversion. """
+    value_invert = ""
+    for bit in self.value:
+      value_invert += {'0':'1', '1':'0', 'x':'x', 'z':'z'} [bit]
+    return VCDValue("b" + value_invert, self.width)
 
 
   def decimal(self) -> int|None:
