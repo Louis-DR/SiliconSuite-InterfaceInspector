@@ -70,11 +70,19 @@ class VCDValue:
     self.has_xz = self.format == VCDFormat.BINARY and ('x' in self.value or 'X' in self.value or 'z' in self.value or 'Z' in value)
 
 
-
-  def __getitem__(self, key) -> VCDValue:
+  def __getitem__(self, key:int|slice) -> VCDValue:
     """ The [] operator uses binary indexing instead of string indexing. """
     value_sliced = self.value[::-1][key][::-1]
     return VCDValue("b"+value_sliced, len(value_sliced))
+
+  def __setitem__(self, key:int|slice, value:VCDValue) -> None:
+    """ The [] operator uses binary indexing instead of string indexing. """
+    value_modified      = list(self.value)        # String to list to use item assignment
+    value_modified      = value_modified[::-1]    # Reverse to use binary indexing
+    value_modified[key] = list(value.value)[::-1] # Assign item with reverse order
+    value_modified      = value_modified[::-1]    # Reverse back the list
+    value_modified      = ''.join(value_modified) # List to string
+    self.value          = value_modified
 
   def __len__(self) -> int:
     """ Length is the width of the binary value. """
