@@ -444,6 +444,11 @@ class HBM2eInterfacePaths:
   WDQS_T : str = "WDQS_T"
   WDQS_C : str = "WDQS_C"
   DQ     : str = "DQ"
+  DBI    : str = "DBI"
+  DM     : str = "DM"
+  PAR    : str = "PAR"
+  DERR   : str = "DERR"
+  AERR   : str = "AERR"
 
 class HBM2eInterface(Interface):
   """ An HBM2e interface with its VCD signals. """
@@ -468,6 +473,11 @@ class HBM2eInterface(Interface):
       self.paths.WDQS_T = f"{path}.{prefix}{change_case('WDQS_T', uppercase)}{suffix}"
       self.paths.WDQS_C = f"{path}.{prefix}{change_case('WDQS_C', uppercase)}{suffix}"
       self.paths.DQ     = f"{path}.{prefix}{change_case('DQ',     uppercase)}{suffix}"
+      self.paths.DBI    = f"{path}.{prefix}{change_case('DBI',    uppercase)}{suffix}"
+      self.paths.DM     = f"{path}.{prefix}{change_case('DM',     uppercase)}{suffix}"
+      self.paths.PAR    = f"{path}.{prefix}{change_case('PAR',    uppercase)}{suffix}"
+      self.paths.DERR   = f"{path}.{prefix}{change_case('DERR',   uppercase)}{suffix}"
+      self.paths.AERR   = f"{path}.{prefix}{change_case('AERR',   uppercase)}{suffix}"
     else: self.paths = signals
     self.CK_T   = vcd_file.get_signal( self.paths.CK_T   .split('.') )
     self.CK_C   = vcd_file.get_signal( self.paths.CK_C   .split('.') )
@@ -479,6 +489,11 @@ class HBM2eInterface(Interface):
     self.WDQS_T = vcd_file.get_signal( self.paths.WDQS_T .split('.') )
     self.WDQS_C = vcd_file.get_signal( self.paths.WDQS_C .split('.') )
     self.DQ     = vcd_file.get_signal( self.paths.DQ     .split('.') )
+    self.DBI    = vcd_file.get_signal( self.paths.DBI    .split('.') )
+    self.DM     = vcd_file.get_signal( self.paths.DM     .split('.') )
+    self.PAR    = vcd_file.get_signal( self.paths.PAR    .split('.') )
+    self.DERR   = vcd_file.get_signal( self.paths.DERR   .split('.') )
+    self.AERR   = vcd_file.get_signal( self.paths.AERR   .split('.') )
 
 
 
