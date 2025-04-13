@@ -36,6 +36,7 @@ burst_length   = 4
 data_bus_width = 64
 data_width     = data_bus_width * burst_length
 
+enable_data_bus_inversion = True
 class HBM2eCommand(Packet):
   """ HBM2e command base type. """
 
@@ -746,12 +747,15 @@ class HBM2eInterface(Interface):
 
       # Pseudo-channels use different halves of the DQ and *DQS buses
       data_bus_slice       = None
+      auxiliary_bus_slice  = None
       strobe_bus_reference = None
       if column_command.pseudo_channel.decimal() == 1:
         data_bus_slice       = slice(64,128)
+        auxiliary_bus_slice  = slice(8,16)
         strobe_bus_reference = VCDValue("b11xx",4)
       else:
         data_bus_slice       = slice(0,64)
+        auxiliary_bus_slice  = slice(0,8)
         strobe_bus_reference = VCDValue("bxx11",4)
 
       # Use the CK_c to move half a tCK before the data burst
@@ -766,7 +770,6 @@ class HBM2eInterface(Interface):
       # Capture the beats of the data burst
       beat_timestamp = None
       even_beat      = True
-      data_beat      = None
       data_burst     = VCDValue("",0)
       for beat in range(burst_length):
 
@@ -779,6 +782,14 @@ class HBM2eInterface(Interface):
 
         # Read the half of the data bus corresponding to the pseudo-channel
         data_beat = self.DQ.get_at_timestamp(beat_timestamp, move=True).value[data_bus_slice]
+
+        # Data bus inversion
+        if enable_data_bus_inversion:
+          data_bus_inversion_beat = self.DBI.get_at_timestamp(beat_timestamp, move=True).value[auxiliary_bus_slice]
+          for byte_index in range(data_bus_inversion_beat.width):
+            if data_bus_inversion_beat[byte_index]:
+              data_byte_slice = slice(byte_index * 8, (byte_index+1) * 8)
+              data_beat[data_byte_slice] = ~data_beat[data_byte_slice]
 
         # Switch the two halves of the data beat
         data_beat = data_beat[:len(data_beat)//2] ** data_beat[len(data_beat)//2:]
