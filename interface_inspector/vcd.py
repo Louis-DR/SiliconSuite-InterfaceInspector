@@ -191,6 +191,10 @@ class VCDValue:
     """ Convert to string with the hexadecimal representation. """
     return self.hexadecimal()
 
+  def __bool__(self) -> bool:
+    """ Convert to boolean. True if at least one 1, false otherwise. """
+    return '1' in self.__repr__()
+
   def __eq__(self, value:object) -> bool:
     """ Compare two VCDValues with the raw values, else compare using the hexadecimal representation. """
     if isinstance(value, VCDValue):
