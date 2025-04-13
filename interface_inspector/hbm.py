@@ -434,14 +434,16 @@ class HBM2eColumnCommand_ModeRegisterSet(HBM2eColumnCommand):
 @dataclass
 class HBM2eInterfacePaths:
   """ A set of HBM2e signal paths. """
-  CK_T  : str = "CK_T"
-  CK_C  : str = "CK_C"
-  CS_N  : str = "CS_N"
-  CA    : str = "CA"
-  DQS_T : str = "DQS_T"
-  DQS_C : str = "DQS_C"
-  DQ    : str = "DQ"
-  CB    : str = "CB"
+  CK_T   : str = "CK_T"
+  CK_C   : str = "CK_C"
+  CKE    : str = "CKE"
+  R      : str = "R"
+  C      : str = "C"
+  RDQS_T : str = "RDQS_T"
+  RDQS_C : str = "RDQS_C"
+  WDQS_T : str = "WDQS_T"
+  WDQS_C : str = "WDQS_C"
+  DQ     : str = "DQ"
 
 class HBM2eInterface(Interface):
   """ An HBM2e interface with its VCD signals. """
