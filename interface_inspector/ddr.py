@@ -32,6 +32,7 @@ line_width    = 45
 
 enable_cid    = False
 enable_extras = False
+enable_ecc    = False
 
 column_address_strobe_latency = 46 # Value for 5200Mbps datarate
 read_latency  = column_address_strobe_latency
@@ -249,6 +250,7 @@ class DDR5Command_Write(DDR5Command):
     self.burst_length       = burst_length
     self.partial_write      = partial_write
     self.data               = None
+    self.ecc                = None
   def __repr__(self):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
@@ -290,6 +292,7 @@ class DDR5Command_WriteAutoPrecharge(DDR5Command):
     self.burst_length       = burst_length
     self.partial_write      = partial_write
     self.data               = None
+    self.ecc                = None
   def __repr__(self):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
@@ -329,6 +332,7 @@ class DDR5Command_Read(DDR5Command):
     self.column_address     = column_address
     self.burst_length       = burst_length
     self.data               = None
+    self.ecc                = None
   def __repr__(self):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
@@ -367,6 +371,7 @@ class DDR5Command_ReadAutoPrecharge(DDR5Command):
     self.column_address     = column_address
     self.burst_length       = burst_length
     self.data               = None
+    self.ecc                = None
   def __repr__(self):
     parameters = {}
     if enable_cid: parameters["CID"] = self.chip_id.decimal()
@@ -1097,6 +1102,12 @@ class DDR5Interface(Interface):
     elif command_function in [DDR5Command_Write, DDR5Command_WriteAutoPrecharge]:
       data_latency = write_latency
 
+    strobe_bus_reference = None
+    if enable_ecc:
+      strobe_bus_reference = VCDValue("b11111",5)
+    else:
+      strobe_bus_reference = VCDValue("bx1111",5)
+
     if data_latency is not None:
       # Use the CK_c to move half a tCK before the data burst
       self.CK_C.get_edge_at_timestamp(command_words_timestamps[2])
@@ -1110,23 +1121,29 @@ class DDR5Interface(Interface):
       # Capture the beats of the data burst
       beat_timestamp = None
       even_beat      = True
-      data_beat      = None
       data_burst     = VCDValue("",0)
+      ecc_burst      = VCDValue("",0)
       for beat in range(ddr5_burst_length):
 
         # Capture on rising edge of the t or c data strobe
         if even_beat:
-          beat_timestamp = self.DQS_T.get_edge(value=VCDValue("bx1111",5), move=True).timestamp
+          beat_timestamp = self.DQS_T.get_edge(value=strobe_bus_reference, move=True).timestamp
         else:
-          beat_timestamp = self.DQS_C.get_edge(value=VCDValue("bx1111",5), move=True).timestamp
+          beat_timestamp = self.DQS_C.get_edge(value=strobe_bus_reference, move=True).timestamp
         even_beat    = not even_beat
 
         # Read the data bus and append to the burst
         data_beat    = self.DQ.get_at_timestamp(beat_timestamp, move=True).value
         data_burst **= data_beat
 
+        # Read the check bits
+        if enable_ecc:
+          ecc_beat    = self.CB.get_at_timestamp(beat_timestamp, move=True).value
+          ecc_burst **= ecc_beat
+
       # Set the data of the command
       command.data = data_burst
+      command.ecc  = ecc_burst
 
     return command
 
