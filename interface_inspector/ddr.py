@@ -1152,10 +1152,12 @@ class DDR5Interface(Interface):
   def commands(self) -> Generator[DDR5Command, None, None]:
     """ Generator to iterate over all commands. """
     while True:
-      next_command = self.next_command()
-      if next_command:
-        yield next_command
-      else: return
+      try:
+        next_command = self.next_command()
+        if next_command:
+          yield next_command
+        else: return
+      except: return
 
 
 

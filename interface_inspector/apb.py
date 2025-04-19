@@ -271,7 +271,9 @@ class APBInterface(Interface):
   def transactions(self) -> Generator[APBTransaction, None, None]:
     """ Generator to iterate over all transactions. """
     while True:
-      next_transaction = self.next_transaction()
-      if next_transaction:
-        yield next_transaction
-      else: return
+      try:
+        next_transaction = self.next_transaction()
+        if next_transaction:
+          yield next_transaction
+        else: return
+      except: return

@@ -623,10 +623,12 @@ class HBM2eInterface(Interface):
   def row_commands(self) -> Generator[HBM2eRowCommand, None, None]:
     """ Generator to iterate over all row commands. """
     while True:
-      next_row_command = self.next_row_command()
-      if next_row_command:
-        yield next_row_command
-      else: return
+      try:
+        next_row_command = self.next_row_command()
+        if next_row_command:
+          yield next_row_command
+        else: return
+      except: return
 
 
 
@@ -807,10 +809,12 @@ class HBM2eInterface(Interface):
   def column_commands(self) -> Generator[HBM2eColumnCommand, None, None]:
     """ Generator to iterate over all column commands. """
     while True:
-      next_column_command = self.next_column_command()
-      if next_column_command:
-        yield next_column_command
-      else: return
+      try:
+        next_column_command = self.next_column_command()
+        if next_column_command:
+          yield next_column_command
+        else: return
+      except: return
 
 
 
