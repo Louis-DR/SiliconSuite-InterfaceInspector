@@ -27,69 +27,108 @@ context_width   = 0
 value_width     = 2
 line_width      = 48
 
-class APBOperation(Enum):
-  """ Type of APB operation. """
-  READ  = 0
-  WRITE = 1
-  XZ    = 2
-  def __str__(self):
-    return self.name
-
-
-
 class APBTransaction(Packet):
-  """ An APB read or write transaction. """
+  """ APB transaction base type. """
+  def __str__(self):
+    return self.__repr__()
 
+class APBTransactionError(APBTransaction):
+  """ APB incorrect transaction. """
   def __init__(self,
                timestamp_request  : int,
                timestamp_response : int,
                paddr              : VCDValue,
                pprot              : VCDValue,
                pnse               : VCDValue,
-               pwrite             : VCDValue,
                pstrb              : VCDValue,
                pwdata             : VCDValue,
                prdata             : VCDValue,
                pslverr            : VCDValue):
-    """ Packet with timestamps and signal values. """
     self.timestamp_request  = timestamp_request
     self.timestamp_response = timestamp_response
     self.paddr   = paddr
     self.pprot   = pprot
     self.pnse    = pnse
-    self.pwrite  = pwrite
     self.pstrb   = pstrb
     self.pwdata  = pwdata
     self.prdata  = prdata
     self.pslverr = pslverr
-
-    # Check if pwrite is X/Z, else cast to enum
-    if self.pwrite.has_xz:
-      self.operation = APBOperation.XZ
-    else:
-      self.operation = APBOperation(int(self.pwrite.value))
-
-
-
   def __repr__(self) -> str:
-    """ Display the useful information of the transaction. """
     parameters = {}
     parameters["ADDR "] = self.paddr.hexadecimal()
-    color = None
-    match self.operation:
-      case APBOperation.READ:
-        color = Color.BG_YELLOW
-        parameters["DATA "] = self.prdata.hexadecimal()
-      case APBOperation.WRITE:
-        color = Color.BG_CYAN
-        parameters["DATA "] = self.pwdata.hexadecimal()
-      case APBOperation.XZ:
-        color = Color.BG_BLACK + Color.RED + Color.BLINK
     return packet_string(
       timestamp       = self.timestamp_request,
-      command         = str(self.operation),
+      command         = "ERROR",
       parameters      = parameters,
-      color           = color,
+      color           = Color.BG_BLACK + Color.RED + Color.BLINK,
+      timestamp_width = timestamp_width,
+      command_width   = command_width,
+      context_width   = context_width,
+      value_width     = value_width,
+      line_width      = line_width
+    )
+
+class APBTransactionRead(APBTransaction):
+  """ APB read transaction. """
+  def __init__(self,
+               timestamp_request  : int,
+               timestamp_response : int,
+               paddr              : VCDValue,
+               pprot              : VCDValue,
+               pnse               : VCDValue,
+               prdata             : VCDValue,
+               pslverr            : VCDValue):
+    self.timestamp_request  = timestamp_request
+    self.timestamp_response = timestamp_response
+    self.paddr   = paddr
+    self.pprot   = pprot
+    self.pnse    = pnse
+    self.prdata  = prdata
+    self.pslverr = pslverr
+  def __repr__(self) -> str:
+    parameters = {}
+    parameters["ADDR "] = self.paddr.hexadecimal()
+    parameters["DATA "] = self.prdata.hexadecimal()
+    return packet_string(
+      timestamp       = self.timestamp_request,
+      command         = "READ",
+      parameters      = parameters,
+      color           = Color.BG_YELLOW,
+      timestamp_width = timestamp_width,
+      command_width   = command_width,
+      context_width   = context_width,
+      value_width     = value_width,
+      line_width      = line_width
+    )
+
+class APBTransactionWrite(APBTransaction):
+  """ APB write transaction. """
+  def __init__(self,
+               timestamp_request  : int,
+               timestamp_response : int,
+               paddr              : VCDValue,
+               pprot              : VCDValue,
+               pnse               : VCDValue,
+               pstrb              : VCDValue,
+               pwdata             : VCDValue,
+               pslverr            : VCDValue):
+    self.timestamp_request  = timestamp_request
+    self.timestamp_response = timestamp_response
+    self.paddr   = paddr
+    self.pprot   = pprot
+    self.pnse    = pnse
+    self.pstrb   = pstrb
+    self.pwdata  = pwdata
+    self.pslverr = pslverr
+  def __repr__(self) -> str:
+    parameters = {}
+    parameters["ADDR "] = self.paddr.hexadecimal()
+    parameters["DATA "] = self.pwdata.hexadecimal()
+    return packet_string(
+      timestamp       = self.timestamp_request,
+      command         = "WRITE",
+      parameters      = parameters,
+      color           = Color.BG_CYAN,
       timestamp_width = timestamp_width,
       command_width   = command_width,
       context_width   = context_width,
@@ -190,18 +229,41 @@ class APBInterface(Interface):
       pnse  = self.pnse   .get_at_timestamp(timestamp_request).value
 
     # Build and return the transaction object
-    transaction = APBTransaction(
-      timestamp_request  = timestamp_request,
-      timestamp_response = timestamp_response,
-      paddr              = paddr,
-      pprot              = pprot,
-      pnse               = pnse,
-      pwrite             = pwrite,
-      pstrb              = pstrb,
-      pwdata             = pwdata,
-      prdata             = prdata,
-      pslverr            = pslverr,
-    )
+    transaction = APBTransaction()
+    if pwrite.has_xz:
+      transaction = APBTransactionError(
+        timestamp_request  = timestamp_request,
+        timestamp_response = timestamp_response,
+        paddr              = paddr,
+        pprot              = pprot,
+        pnse               = pnse,
+        pstrb              = pstrb,
+        pwdata             = pwdata,
+        prdata             = prdata,
+        pslverr            = pslverr,
+      )
+    elif pwrite:
+      transaction = APBTransactionWrite(
+        timestamp_request  = timestamp_request,
+        timestamp_response = timestamp_response,
+        paddr              = paddr,
+        pprot              = pprot,
+        pnse               = pnse,
+        pstrb              = pstrb,
+        pwdata             = pwdata,
+        pslverr            = pslverr,
+      )
+    else:
+      transaction = APBTransactionRead(
+        timestamp_request  = timestamp_request,
+        timestamp_response = timestamp_response,
+        paddr              = paddr,
+        pprot              = pprot,
+        pnse               = pnse,
+        prdata             = prdata,
+        pslverr            = pslverr,
+      )
+
     return transaction
 
 
