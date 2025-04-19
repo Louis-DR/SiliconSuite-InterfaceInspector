@@ -1116,9 +1116,9 @@ class DDR5Interface(Interface):
 
         # Capture on rising edge of the t or c data strobe
         if even_beat:
-          beat_timestamp = self.DQS_T.get_edge(value=VCDValue("b1111",4), move=True).timestamp
+          beat_timestamp = self.DQS_T.get_edge(value=VCDValue("bx1111",5), move=True).timestamp
         else:
-          beat_timestamp = self.DQS_C.get_edge(value=VCDValue("b1111",4), move=True).timestamp
+          beat_timestamp = self.DQS_C.get_edge(value=VCDValue("bx1111",5), move=True).timestamp
         even_beat    = not even_beat
 
         # Read the data bus and append to the burst
