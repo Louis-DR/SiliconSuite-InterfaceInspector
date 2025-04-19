@@ -306,6 +306,10 @@ class VCDSignal:
                ) -> VCDSample:
     """ Get an edge by polarity or value from the current timestamp. """
 
+    # If we already reached the end, there is no next edge
+    if direction == TimeDirection.NEXT and self.finished:
+      return None
+
     # Iterate over the indices from the current one in the selected direction
     search_index = self.current_index
     while True:
