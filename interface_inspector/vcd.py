@@ -375,9 +375,16 @@ class VCDSignal:
                             timestamp          : int,
                             polarity           : EdgePolarity  = EdgePolarity.RISING,
                             direction          : TimeDirection = TimeDirection.NEXT,
-                            match_on_timestamp : bool          = True
+                            match_on_timestamp : bool          = True,
+                            move               : bool          = False,
                             ) -> VCDSample:
     """ Get the next or previous rising or falling edge from a timestamp. """
+
+    # If don't move, then backup the current state
+    if not move:
+      backup_current_sample = self.current_sample
+      backup_current_index  = self.current_index
+      backup_finished       = self.finished
 
     # First move to the last edge at or before the timestamp
     search_sample = self.get_at_timestamp(timestamp, move=True)
@@ -388,10 +395,19 @@ class VCDSignal:
         and (  ( polarity == EdgePolarity.RISING  and search_sample.value == 1 )
             or ( polarity == EdgePolarity.FALLING and search_sample.value == 0 )
             or ( polarity == EdgePolarity.ANY ) ) ):
-      return search_sample
+      pass
 
     # Else get the edge from there
-    return self.get_edge(polarity=polarity, direction=direction, move=True)
+    else:
+      search_sample = self.get_edge(polarity=polarity, direction=direction, move=move)
+
+    # If don't move, then restore the backup state
+    if not move:
+      self.current_sample = backup_current_sample
+      self.current_index  = backup_current_index
+      self.finished       = backup_finished
+
+    return search_sample
 
 
 
