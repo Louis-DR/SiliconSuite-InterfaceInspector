@@ -1555,6 +1555,7 @@ class DDR5PageAnnotator(Annotator):
 word_length           = 32
 number_words          = ddr5_data_width // 32
 data_annotation_width = ddr5_data_width + number_words
+check_bits            = 8
 
 class DDR5DataAnnotator(Annotator):
   """ Display the content of the data bus for reads and writes. """
@@ -1581,6 +1582,13 @@ class DDR5DataAnnotator(Annotator):
         # Mark zeros with a faint color for easier reading
         word_string = word_string.replace('0', Color.FAINT + '0' + Color.RESET)
         annotation_list.append(word_string)
+
+        if enable_ecc:
+          ecc_value = command.ecc[ word_index    * check_bits :
+                                  (word_index+1) * check_bits ]
+          ecc_string = ecc_value.hexadecimal()
+          ecc_string = ecc_string.replace('0', Color.FAINT + '0' + Color.RESET)
+          annotation_list.append(ecc_string)
 
       # Convert the annotation list to a single string
       self.annotation_string = " ".join(annotation_list)
