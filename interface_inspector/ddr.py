@@ -1556,8 +1556,8 @@ class DDR5PageAnnotator(Annotator):
 
 word_length           = 32
 number_words          = ddr5_data_width // 32
-data_annotation_width = ddr5_data_width + number_words
 check_bits            = 8
+data_annotation_width = number_words * (word_length // 4 + check_bits // 4 + 2) - 1
 
 class DDR5DataAnnotator(Annotator):
   """ Display the content of the data bus for reads and writes. """
