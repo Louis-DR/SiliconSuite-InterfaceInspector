@@ -191,6 +191,10 @@ class VCDValue:
     """ Convert to string with the hexadecimal representation. """
     return self.hexadecimal()
 
+  def __int__(self) -> int:
+    """ Convert to integer. """
+    return self.decimal()
+
   def __bool__(self) -> bool:
     """ Convert to boolean. True if at least one 1, false otherwise. """
     return '1' in self.__repr__()
