@@ -143,7 +143,7 @@ class APBTransactionWrite(APBTransaction):
 
 @dataclass
 class APBInterfacePaths:
-  """ A set of HBM2e signal paths. """
+  """ The paths of the signals of an APB interface. """
   pclock  : str = "pclock"
   psel    : str = "psel"
   penable : str = "penable"
@@ -205,7 +205,7 @@ class APBInterface(Interface):
     sample_penable    = self.penable.get_edge(move=True)
     if sample_penable is None: return None
     timestamp_penable = sample_penable.timestamp
-    timestamp_request = self.pclock.get_edge_at_timestamp(timestamp_penable).timestamp
+    timestamp_request = self.pclock.get_edge_at_timestamp(timestamp_penable, move=True).timestamp
 
     # Sample the request signals
     paddr   = self.paddr  .get_at_timestamp(timestamp_request).value
@@ -216,8 +216,8 @@ class APBInterface(Interface):
 
     # Get the timestamp of the next rising edge of the clock after assertion of pready
     pready  = self.pready .get_at_timestamp(timestamp_request, move=True).value
-    timestamp_pready   = self.pready.get_edge_at_timestamp(timestamp_request).timestamp
-    timestamp_response = self.pclock.get_edge_at_timestamp(timestamp_pready).timestamp
+    timestamp_pready   = self.pready.get_edge_at_timestamp(timestamp_request, move=True).timestamp
+    timestamp_response = self.pclock.get_edge_at_timestamp(timestamp_pready, move=True).timestamp
 
     # Sample the response signals
     prdata  = self.pprot  .get_at_timestamp(timestamp_response).value

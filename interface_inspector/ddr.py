@@ -789,7 +789,7 @@ class DDR5Interface(Interface):
 
     # Four words (UIs) of the command
     command_words = []
-    command_words_timestamps = [self.CK_T.get_edge_at_timestamp(sample_CSN.timestamp, polarity=EdgePolarity.RISING).timestamp]
+    command_words_timestamps = [self.CK_T.get_edge_at_timestamp(sample_CSN.timestamp, polarity=EdgePolarity.RISING, move=True).timestamp]
     for word_index in range(4):
       command_words.append(self.CA.get_at_timestamp(command_words_timestamps[-1], move=True).value)
       command_words_timestamps.append(self.CK_T.get_edge(polarity=EdgePolarity.RISING, move=True).timestamp)
@@ -1110,7 +1110,7 @@ class DDR5Interface(Interface):
 
     if data_latency is not None:
       # Use the CK_c to move half a tCK before the data burst
-      self.CK_C.get_edge_at_timestamp(command_words_timestamps[2])
+      self.CK_C.get_edge_at_timestamp(command_words_timestamps[2], move=True)
       for t_ck in range(data_latency-1):
         self.CK_C.get_edge(move=True)
 

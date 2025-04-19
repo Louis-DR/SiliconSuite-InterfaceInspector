@@ -506,7 +506,7 @@ class HBM2eInterface(Interface):
     if sample_R is None: return None
 
     # First word of the row command
-    timestamp_row_command_w0 = self.CK_T.get_edge_at_timestamp(sample_R.timestamp, polarity=EdgePolarity.RISING).timestamp
+    timestamp_row_command_w0 = self.CK_T.get_edge_at_timestamp(sample_R.timestamp, polarity=EdgePolarity.RISING, move=True).timestamp
     row_command_w0 = self.R.get_at_timestamp(timestamp_row_command_w0, move=True).value
     row_command_cke = self.CKE.get_at_timestamp(timestamp_row_command_w0, move=True).value
 
@@ -638,7 +638,7 @@ class HBM2eInterface(Interface):
     if sample_C is None: return None
 
     # First word of the column command
-    timestamp_column_command_w0 = self.CK_T.get_edge_at_timestamp(sample_C.timestamp, polarity=EdgePolarity.RISING).timestamp
+    timestamp_column_command_w0 = self.CK_T.get_edge_at_timestamp(sample_C.timestamp, polarity=EdgePolarity.RISING, move=True).timestamp
     column_command_w0 = self.C.get_at_timestamp(timestamp_column_command_w0, move=True).value
 
     # Second word of the column command
@@ -759,7 +759,7 @@ class HBM2eInterface(Interface):
         strobe_bus_reference = VCDValue("bxx11",4)
 
       # Use the CK_c to move half a tCK before the data burst
-      self.CK_C.get_edge_at_timestamp(timestamp_column_command_w0)
+      self.CK_C.get_edge_at_timestamp(timestamp_column_command_w0, move=True)
       for t_ck in range(data_latency-1):
         self.CK_C.get_edge(move=True)
 
