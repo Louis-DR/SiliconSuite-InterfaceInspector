@@ -1122,7 +1122,7 @@ class HBM2ePageAnnotator(Annotator):
 
 word_length           = 32
 number_words          = data_width // 32
-data_annotation_width = data_width + number_words
+data_annotation_width = number_words * (word_length // 4 + 1) - 1
 
 class HBM2eDataAnnotator(Annotator):
   """ Display the content of the data bus for reads and writes. """
