@@ -222,6 +222,32 @@ class VCDValue:
     return True
 
 
+  @classmethod
+  def none(cls):
+    """ Empty value. """
+    return cls("",0)
+
+  @classmethod
+  def zero(cls):
+    """ Single bit 0. """
+    return cls("0",1)
+
+  @classmethod
+  def one(cls):
+    """ Single bit 1. """
+    return cls("1",1)
+
+  @classmethod
+  def x(cls):
+    """ Single bit X. """
+    return cls("x",1)
+
+  @classmethod
+  def z(cls):
+    """ Single bit Z. """
+    return cls("z",1)
+
+
 
 
 
