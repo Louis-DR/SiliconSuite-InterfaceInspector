@@ -304,11 +304,12 @@ class VCDSignal:
 
   def __init__(self, vcd:list[VCDSample], width:int):
     """ VCDSignal from a list of VCDSamples and a width. """
-    self.vcd            = vcd
-    self.current_sample = vcd[0]
-    self.current_index  = 0
-    self.finished       = False
-    self.width          = width
+    self.vcd               = vcd
+    self.current_index     = 0
+    self.current_sample    = vcd[self.current_index]
+    self.current_timestamp = self.current_sample.timestamp
+    self.finished          = False
+    self.width             = width
 
 
 
@@ -321,8 +322,9 @@ class VCDSignal:
 
     # Update the state of the signal
     if move:
-      self.current_index  = search_index
-      self.current_sample = search_sample
+      self.current_index     = search_index
+      self.current_sample    = search_sample
+      self.current_timestamp = timestamp
     return search_sample
 
 
@@ -359,6 +361,7 @@ class VCDSignal:
           if search_index == len(self.vcd):
             self.current_sample = self.vcd[-1]
           else: self.current_sample = self.vcd[search_index]
+          self.current_timestamp = self.current_sample.timestamp
 
           # Update the finished flag at the end of the dump
           if direction == TimeDirection.NEXT:
@@ -395,6 +398,7 @@ class VCDSignal:
         if move:
           self.current_index  = search_index
           self.current_sample = search_sample
+          self.current_timestamp = self.current_sample.timestamp
 
         # Return the matching edge
         return search_sample
@@ -412,9 +416,10 @@ class VCDSignal:
 
     # If don't move, then backup the current state
     if not move:
-      backup_current_sample = self.current_sample
-      backup_current_index  = self.current_index
-      backup_finished       = self.finished
+      backup_current_index     = self.current_index
+      backup_current_sample    = self.current_sample
+      backup_current_timestamp = self.current_timestamp
+      backup_finished          = self.finished
 
     # First move to the last edge at or before the timestamp
     search_sample = self.get_at_timestamp(timestamp, move=True)
@@ -429,13 +434,14 @@ class VCDSignal:
 
     # Else get the edge from there
     else:
-      search_sample = self.get_edge(polarity=polarity, direction=direction, move=move)
+      search_sample = self.get_edge(polarity=polarity, direction=direction, move=True)
 
     # If don't move, then restore the backup state
     if not move:
-      self.current_sample = backup_current_sample
-      self.current_index  = backup_current_index
-      self.finished       = backup_finished
+      self.current_index     = backup_current_index
+      self.current_sample    = backup_current_sample
+      self.current_timestamp = backup_current_timestamp
+      self.finished          = backup_finished
 
     return search_sample
 
