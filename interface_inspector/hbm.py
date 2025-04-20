@@ -772,7 +772,7 @@ class HBM2eInterface(Interface):
       # Capture the beats of the data burst
       beat_timestamp = None
       even_beat      = True
-      data_burst     = VCDValue("",0)
+      data_burst     = VCDValue.none()
       for beat in range(burst_length):
 
         # Capture on rising edge of the t or c data strobe

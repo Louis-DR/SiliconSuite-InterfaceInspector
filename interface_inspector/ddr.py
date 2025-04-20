@@ -1121,8 +1121,8 @@ class DDR5Interface(Interface):
       # Capture the beats of the data burst
       beat_timestamp = None
       even_beat      = True
-      data_burst     = VCDValue("",0)
-      ecc_burst      = VCDValue("",0)
+      data_burst     = VCDValue.none()
+      ecc_burst      = VCDValue.none()
       for beat in range(ddr5_burst_length):
 
         # Capture on rising edge of the t or c data strobe
