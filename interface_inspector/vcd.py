@@ -496,22 +496,22 @@ def get_next_valid_ready_handshake_timestamp(clock : VCDSignal,
   """ Get the timestamp of the next valid-ready handshake. This moves the pointers for all three signals. Returns None if no handshake were found. """
 
   # Sample the valid (get rising edge)
-  sample_valid = valid.get_edge(move=True)
-  if sample_valid is None: return None
-  timestamp_valid = sample_valid.timestamp
+  valid_sample = valid.get_edge(move=True)
+  if valid_sample is None: return None
+  valid_timestamp = valid_sample.timestamp
 
   # Sample the ready (check if already high, else get rising edge)
   if ready.get_at_timestamp(timestamp_valid):
-    timestamp_ready = timestamp_valid
+    ready_timestamp = valid_timestamp
   else:
-    sample_ready = ready.get_edge_at_timestamp(timestamp_valid, move=True)
-    if sample_ready is None: return None
-    timestamp_ready = sample_ready.timestamp
+    ready_sample = ready.get_edge_at_timestamp(valid_timestamp, move=True)
+    if ready_sample is None: return None
+    ready_timestamp = ready_sample.timestamp
 
   # Get the rising edge of the clock
-  sample_clock = clock.get_edge_at_timestamp(timestamp_ready, move=True)
-  if sample_clock is None: return None
-  timestamp_clock = sample_clock.timestamp
+  clock_sample = clock.get_edge_at_timestamp(ready_timestamp, move=True)
+  if clock_sample is None: return None
+  timestamp_clock = clock_sample.timestamp
 
   return timestamp_clock
 
