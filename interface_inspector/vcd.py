@@ -332,7 +332,7 @@ class VCDSignal:
                value      : VCDValue            = None,
                comparison : ComparisonOperation = ComparisonOperation.EQUAL_NO_XY,
                direction  : TimeDirection       = TimeDirection.NEXT,
-               move       : bool                = False
+               move       : bool                = False,
                ) -> VCDSample:
     """ Get an edge by polarity or value from the current timestamp. """
 
@@ -438,6 +438,54 @@ class VCDSignal:
       self.finished       = backup_finished
 
     return search_sample
+
+
+
+def get_value_at_timestamp_if_signal_exists(signal  : VCDSignal|None,
+                                            default : VCDValue|None = None,
+                                            **kwargs
+                                            ) -> VCDValue|None:
+  """ Get the value of the last sample at or before a timestamp if the signal exists (is not None), else it returns a default value (None by default). """
+  if signal is None:
+    return default
+  else:
+    sample = signal.get_at_timestamp(**kwargs)
+    if sample is not None:
+      return sample.value
+    else:
+      return default
+
+
+
+def get_value_of_edge_if_signal_exists(signal  : VCDSignal|None,
+                                       default : VCDValue|None = None,
+                                       **kwargs
+                                       ) -> VCDValue|None:
+  """ Get the value of an edge by polarity or value from the current timestamp if the signal exists (is not None), else it returns a default value (None by default). """
+  if signal is None:
+    return default
+  else:
+    sample = signal.get_edge(**kwargs)
+    if sample is not None:
+      return sample.value
+    else:
+      return default
+
+
+
+def get_value_of_edge_at_timestamp_if_signal_exists(signal  : VCDSignal|None,
+                                                    default : VCDValue|None = None,
+                                                    **kwargs
+                                                    ) -> VCDValue|None:
+  """ Get the value of the next or previous rising or falling edge from a timestamp if the signal exists (is not None), else it returns a default value (None by default). """
+  if signal is None:
+    return default
+  else:
+    sample = signal.get_edge_at_timestamp(**kwargs)
+    if sample is not None:
+      return sample.value
+    else:
+      return default
 
 
 
