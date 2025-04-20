@@ -501,13 +501,39 @@ def get_next_valid_ready_handshake_timestamp(clock : VCDSignal,
                                              ) -> int|None:
   """ Get the timestamp of the next valid-ready handshake. This moves the pointers for all three signals. Returns None if no handshake were found. """
 
-  # Sample the valid (get rising edge)
-  valid_sample = valid.get_edge(move=True)
+  # First we check the next cycle after the last sample of the ready signal.
+  # If the valid is high, then we fetch the timestamp of the handshake.
+  # Else we go to the next rising edge of the valid.
+  # We do this instead of checking the next valid edge directly because for
+  # back-to-back packets, the valid stays high after the first handshake
+  # without an edge.
+
+  # Move back the clock to the last ready timestamp
+  last_ready_timestamp = ready.current_timestamp
+  clock.get_edge_at_timestamp(last_ready_timestamp, move=True)
+
+  # Next clock cycle
+  clock_sample = clock.get_edge(move=True)
+  if clock_sample is None: return None
+  clock_timestamp = clock_sample.timestamp
+
+  # Sample the valid signal (at the cycle after the previous ready)
+  valid_sample = valid.get_at_timestamp(clock_timestamp, move=True)
   if valid_sample is None: return None
-  valid_timestamp = valid_sample.timestamp
+  valid_value = valid_sample.value
+  if valid_value:
+    valid_timestamp = clock_timestamp
+
+  # If valid is low, then sample the next valid rising edge
+  else:
+    valid_sample = valid.get_edge(move=True)
+    if valid_sample is None: return None
+    valid_timestamp = valid_sample.timestamp
 
   # Sample the ready (check if already high, else get rising edge)
-  if ready.get_at_timestamp(timestamp_valid):
+  ready_sample = ready.get_at_timestamp(valid_timestamp, move=True)
+  ready_value = ready_sample.value
+  if ready_value:
     ready_timestamp = valid_timestamp
   else:
     ready_sample = ready.get_edge_at_timestamp(valid_timestamp, move=True)
@@ -520,6 +546,9 @@ def get_next_valid_ready_handshake_timestamp(clock : VCDSignal,
   timestamp_clock = clock_sample.timestamp
 
   return timestamp_clock
+
+
+
 
 
 
