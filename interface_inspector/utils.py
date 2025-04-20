@@ -54,9 +54,10 @@ class Color:
   BG_WHITE   = '\033[47m'
   BG_DEFAULT = '\033[49m'
 
+ansi_escape_pattern = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 def remove_colors(string:str) -> str:
   """ Remove ANSI color codes from a string. """
-  return re.sub(r'\x1b\[[0-9;]*m', '', string)
+  return ansi_escape_pattern.sub('', string)
 
 
 
